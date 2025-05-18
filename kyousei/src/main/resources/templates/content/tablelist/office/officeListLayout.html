@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,viewport-fit=cover">
+
+<head>
+    <meta charset="UTF-8">
+    <link th:href="@{/css/tablelist.css}" rel="stylesheet" type="text/css">
+
+    <style type="text/css">
+        .tablelist-office .tablelist-container {
+            max-width: 50rem;
+        }
+
+        .tablelist-office tr {
+            grid-template-columns: 3rem 5rem minmax(10rem, 1fr) minmax(10rem, 12rem) minmax(10rem, 12rem);
+        }
+
+        .tablelist-office footer {
+            padding: 2rem;
+            justify-self: end;
+        }
+
+        .dialog-content.officelist {
+            width: 40rem;
+        }
+
+        @media screen and (max-width:560px) {
+            .dialog-content.officelist {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div th:replace="~{fragment/main::main-fragment}"></div>
+
+    <script th:src="@{/js/default.js}"></script>
+    <script th:src="@{/js/dialog.js}"></script>
+    <script th:src="@{/js/time.js}"></script>
+    <script th:src="@{/js/list.js}"></script>
+    <script th:src="@{/js/form.js}"></script>
+    <script th:src="@{/js/sidebar.js}"></script>
+    <script th:src="@{/js/check.js}"></script>
+    <script th:src="@{/js/tablelist.js}"></script>
+    <script th:src="@{/js/getinfo.js}"></script>
+    <script th:src="@{/js/combo.js}"></script>
+    <script type="text/JavaScript" th:inline="JavaScript">
+        const token = /*[[${_csrf.token}]]*/; // POST送信用トークン
+        const sqllistdata = /*[[${sqllistdata}]]*/; // リスト用SqlData
+        const sqlformdata = /*[[${sqlformdata}]]*/; // フォーム用SqlData
+        const categorylist = /*[[${categorylist}]]*/; // カテゴリーリスト
+        const tablelistName = 'tablelist'; // テーブルリストのID名
+        const tablelistHeaderNames = ['コード', '支店名', '電話番号', '会社名']; // テーブルリストのヘッダーリスト
+        const tablelistSearchString = ' AND o.office_id'; // SQLのWHERE句用文字列
+
+        let tablelist = /*[[${tablelist}]]*/; // 初期リスト記憶用
+        let list = []; // 検索結果表示用
+        let acquisitionDateTime; // 時刻表示用
+        let sidebarSelectId = 0; // サイドバー選択アイテム記憶用
+
+// -------------------------------------------------------------------------------------------------------------------------------------- 画面作成
+        // フォーム画面作成
+        function getFormContent(item) {
+            const elmContent = document.createElement('form');
+            elmContent.classList.add('dialog-content', 'officelist');
+            elmContent.setAttribute('id', 'office-form');
+            // DB登録用隠しアイテム
+            elmContent.insertAdjacentHTML('beforeend', '<input name="office_id" type="hidden" value="' + item.office_id + '">');
+            elmContent.insertAdjacentHTML('beforeend', '<input name="corporation_id" type="hidden" value="' + item.corporation_id + '">');
+            elmContent.insertAdjacentHTML('beforeend', '<input name="code" type="hidden" value="' + item.code + '">');
+            elmContent.insertAdjacentHTML('beforeend', '<input name="version" type="hidden" value="' + item.version + '">');
+            // 会社セレクトボックス
+            if (item.company_id == 0) {
+                const selectItem = document.querySelector('#sidebar-area li.selected > input');
+                item.company_id = selectItem.value;
+            }
+            const selectCompany = createComboBox(sidebarlist, 'company', item.company_id, null);
+            const selectCompanyContent = getComboBox('会社', selectCompany);
+            selectCompanyContent.classList.add('cp6');
+            elmContent.insertAdjacentElement('beforeend', selectCompanyContent);
+            // 支店名入力ボックス
+            const nameContent = getNameInputBoxWithKana(item);
+            nameContent.classList.add('cp12');
+            elmContent.insertAdjacentElement('beforeend', nameContent);
+            // 電話番号入力ボックス
+            const telContent = getTelNumberInputBox(item);
+            telContent.classList.add('cp4');
+            elmContent.insertAdjacentElement('beforeend', telContent);
+            // FAX番号入力ボックス
+            const faxContent = getFaxNumberInputBox(item);
+            faxContent.classList.add('ct5', 'cp4');
+            elmContent.insertAdjacentElement('beforeend', faxContent);
+            // 郵便番号・住所入力ボックス
+            const addressContent = getAddressInputBox(item);
+            addressContent.classList.add('cp12');
+            elmContent.insertAdjacentElement('beforeend', addressContent);
+            // メールアドレス入力ボックス
+            const mailContent = getMailAddressInputBox(item);
+            mailContent.classList.add('cp12');
+            elmContent.insertAdjacentElement('beforeend', mailContent);
+
+            return elmContent;
+        }
+
+// -------------------------------------------------------------------------------------------------------------------------------------- 更新時の処理
+        // 入力チェック
+        function execFormDataCheck() {
+            const name = document.querySelector('[name="full_name"]');
+            if (name != null && name.value == "") {
+                const msg = '名前が入力されていません';
+                const title = 'エラー';
+                const headerColor = 'red';
+                createMessageDialog(msg, title, headerColor);
+                return false;
+            }
+            return true;
+        }
+
+        // 作成・更新処理
+        async function execUpdateFormData() {
+            if (execFormDataCheck() == false) {
+                return;
+            } else {
+                const form = document.getElementById('office-form');
+                const formData = new FormData(form);
+                const formdata = {};
+                formdata.office_id = formData.get('office_id');
+                formdata.corporation_id = formData.get('corporation_id');
+                formdata.code = formData.get('code');
+                formdata.company_id = formData.get('company');
+                formdata.full_name = formData.get('full_name');
+                formdata.full_name_kana = formData.get('full_name_kana');
+                formdata.tel_number = formData.get('tel_number');
+                formdata.fax_number = formData.get('fax_number');
+                formdata.full_address = formData.get('full_address');
+                formdata.email = formData.get('email');
+                formdata.version = formData.get('version');
+                // 郵便番号はフォームが違うため別処理
+                const postal = document.querySelector('input[name=postal_code]');
+                formdata.postal_code = postal.value;
+                // 保存処理
+                const id = formdata.office_id;
+                const selectId = formdata.company_id;
+                const obj = document.getElementById('sidebar-item' + formdata.company_id);
+                await saveFormData('/company/office/save', formdata, id, selectId, tablelistName, obj);
+            }
+        }
+
+// -------------------------------------------------------------------------------------------------------------------------------------- 初期化時の処理
+        window.addEventListener("load", () => {
+            // 検索ボックスでエンターキーが押された時の処理を登録
+            document.getElementById('search-box').addEventListener('search', function(e) {
+                //　✖️が押された時の処理
+                if ( this.value.length === 0 ) {
+                    extractListFromSelectionCriteria();
+                    updateDisplay();
+                } else {
+                    createTablelistFromSearchCriteria(this.value);
+                }                
+            }, false);
+            // 初期リストを編集用リストにコピー
+            list = tablelist;
+            // フッター表示用の取得時刻を設定
+            acquisitionDateTime = getNow();
+            // ヘッダー作成
+            createHeader();
+            // 営業所リストの先頭に全て表示を追加する            
+            sidebarlist = addAllSelectionsToTopOfList(categorylist);
+            // サイドバー作成
+            const area = document.getElementById("sidebar-area");
+            createSidebarList(sidebarlist, area, "支店一覧", "updateWhenSelected", tablelistName);
+            // 画面更新
+            updateDisplay();
+        });
+    </script>
+</body>
+
+</html>

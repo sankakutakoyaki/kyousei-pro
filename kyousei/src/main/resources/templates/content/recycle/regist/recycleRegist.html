@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{content/recycle/regist/recycleRegistLayout}">
+
+<body>
+    <div class="normal-body recycle" layout:fragment="layout-body"
+        th:with="breadcrumbs=${ { {url:'/',label:'ホーム'},{url:'/recycle', label:'リサイクル'},{url:'', label:'使用登録'} } }">
+        <div th:replace="~{content/recycle/regist/recycleRegistScreen::recycleregist-screen(${breadcrumbs})}"></div>
+    </div>
+</body>
+
+</html>

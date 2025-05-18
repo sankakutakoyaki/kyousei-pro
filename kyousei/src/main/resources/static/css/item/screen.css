@@ -1,0 +1,203 @@
+@charset "UTF-8";
+
+/******************************************************************************************************* 分割画面の位置指定 */
+
+.cp2 {
+    grid-column: 1 / span 2;
+}
+
+.cp3 {
+    grid-column: 1 / span 3;
+}
+
+.cp4 {
+    grid-column: 1 / span 4;
+}
+
+.cp5 {
+    grid-column: 1 / span 5;
+}
+
+.cp6 {
+    grid-column: 1 / span 6;
+}
+
+.cp7 {
+    grid-column: 1 / span 7;
+}
+
+.cp8 {
+    grid-column: 1 / span 8;
+}
+
+.cp9 {
+    grid-column: 1 / span 9;
+}
+
+.cp10 {
+    grid-column: 1 / span 10;
+}
+
+.cp11 {
+    grid-column: 1 / span 11;
+}
+
+.cp12 {
+    grid-column: 1 / span 12;
+}
+
+.ct1 {
+    grid-column-start: 1;
+}
+
+.ct2 {
+    grid-column-start: 2;
+}
+
+.ct3 {
+    grid-column-start: 3;
+}
+
+.ct4 {
+    grid-column-start: 4;
+}
+
+.ct5 {
+    grid-column-start: 5;
+}
+
+.ct6 {
+    grid-column-start: 6;
+}
+
+.ct7 {
+    grid-column-start: 7;
+}
+
+.ct8 {
+    grid-column-start: 8;
+}
+
+.ct9 {
+    grid-column-start: 9;
+}
+
+.ct10 {
+    grid-column-start: 10;
+}
+
+.ct11 {
+    grid-column-start: 11;
+}
+
+.ct12 {
+    grid-column-start: 12;
+}
+
+.rp2 {
+    grid-row: 1 / span 2;
+}
+
+.rp3 {
+    grid-row: 1 / span 3;
+}
+
+.rp4 {
+    grid-row: 1 / span 4;
+}
+
+.rp5 {
+    grid-row: 1 / span 5;
+}
+
+.rp6 {
+    grid-row: 1 / span 6;
+}
+
+.rp7 {
+    grid-row: 1 / span 7;
+}
+
+.rp8 {
+    grid-row: 1 / span 8;
+}
+
+.rp9 {
+    grid-row: 1 / span 9;
+}
+
+.rp10 {
+    grid-row: 1 / span 10;
+}
+
+.rp11 {
+    grid-row: 1 / span 11;
+}
+
+.rp12 {
+    grid-row: 1 / span 12;
+}
+
+.rt1 {
+    grid-row-start: 1;
+}
+
+.rt2 {
+    grid-row-start: 2;
+}
+
+.rt3 {
+    grid-row-start: 3;
+}
+
+.rt4 {
+    grid-row-start: 4;
+}
+
+.rt5 {
+    grid-row-start: 5;
+}
+
+.rt6 {
+    grid-row-start: 6;
+}
+
+.rt7 {
+    grid-row-start: 7;
+}
+
+.rt8 {
+    grid-row-start: 8;
+}
+
+.rt9 {
+    grid-row-start: 9;
+}
+
+.rt10 {
+    grid-row-start: 10;
+}
+
+.rt11 {
+    grid-row-start: 11;
+}
+
+.rt12 {
+    grid-row-start: 12;
+}
+
+*.kana6 {
+    font-size: .6rem;
+}
+
+*.kana7 {
+    font-size: .7rem;
+}
+
+*.kana8 {
+    font-size: .8rem;
+}
+
+*.kana9 {
+    font-size: .9rem;
+}

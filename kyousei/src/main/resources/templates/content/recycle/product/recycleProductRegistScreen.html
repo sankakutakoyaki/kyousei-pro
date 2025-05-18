@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<body>
+    <div class="tablelist-container recycle" th:fragment="registlist-screen(breadcrumbs)">
+    <!-- <div class="registlist-container" th:fragment="registlist-screen(breadcrumbs)"> -->
+        <!-- パンくずリスト -->
+        <div layout:replace="~{fragment/breadcrumbFragment::title(${breadcrumbs})}"></div>
+        <!-- ヘッダー -->
+        <header th:replace="~{content/recycle/product/recycleProductRegistHeaderFragment::regist-header-fragment}"></header>
+        <!-- <div id="registlist-header-product" class="registlist-content"></div> -->
+        <div id="registlist-area" class="registlist-content"></div>
+        <main id="scroll-area" name="registlist-list" class="registlist-area">
+            <div id="loading">
+                <div class="spinner"></div>
+            </div>
+            <button type="button" class="page-top"></button>
+        </main>
+    </div>
+</body>
+
+</html>

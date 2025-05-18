@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{content/timeworks/timeworksLayout}">
+
+<body>
+    <div class="normal-body" layout:fragment="layout-body"
+         th:with="breadcrumbs=${ { {url:'/',label:'ホーム'},{url:'/timeworks', label:'勤怠'},{url:'', label:'レコーダー'} } }">
+        <div th:replace="~{content/timeworks/timeworksScreen::timeworks-screen}"></div>
+    </div>
+</body>
+
+</html>

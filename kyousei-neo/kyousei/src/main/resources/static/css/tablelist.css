@@ -1,0 +1,54 @@
+@charset "UTF-8";
+@import url("/css/item/default.css");
+@import url("/css/item/input.css");
+@import url("/css/item/button.css");
+@import url("/css/item/dialog.css");
+@import url("/css/item/list.css");
+@import url("/css/item/table.css");
+@import url("/css/item/color.css");
+
+/******************************************************************************************************* 基本 */
+
+/* header.input-area.tablelist-regist {
+    grid-template-columns: 1fr;
+    column-gap: 1rem;
+    align-items: center;
+} */
+.form-parts input[name="recycle-number"] {
+    padding: 0 3.5rem 0 .8rem;
+    /* position: relative; */
+}
+
+/******************************************************************************************************* リサイクル */
+
+/* header.input-area.tablelist-recycle {
+    grid-template-columns: 1fr auto;
+    column-gap: 1rem;
+    align-items: end;
+} */
+.sidebar-recycle {
+    padding: 1rem;
+}
+.sidebar-recycle>.input-area,
+.sidebar-recycle>.form-parts {
+    margin-top: .5rem;
+}
+.sidebar-recycle>[name="add-btn"] {
+    margin-top: 1.5rem;
+}
+
+/******************************************************************************************************* スマホ表示のみ */
+
+@media screen and (max-width:560px) {
+    header.input-area.tablelist-regist>.search-box>input[type="search"] {
+        height: 2.5rem;
+        padding: 0 1rem 0 3rem;
+    };
+    /* なぜかこれを入れないと次のCSSが効かない */
+    header.input-area.tablelist-regist>.search-box>input[type="search"]+img {
+        top: .5rem;
+    }
+    header.input-area.tablelist-regist>.search-box>img {
+        top: .5rem;
+    }
+}

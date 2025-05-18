@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{layout/index}">
+
+<head>
+    <title>ホーム</title>
+</head>
+
+<body layout:fragment="layout-body">
+    <div class="normal-body">
+        <div class="index-btn-container">
+            <h1>プッシュ通知デモ</h1>
+            <button id="subscribe">通知を購読</button>
+            <button id="sendNotification">通知を送信</button>
+        </div>
+    </div>
+    <script th:src="@{/js/default.js}"></script>
+    <script type="text/JavaScript" th:inline="JavaScript">
+        // サイドバー作成
+        // const parents = [
+        //     { "id": -1, "text": "ホーム", "img": "/icons/home.png", "func": "onclick=\"moveLinkPage('/')\"" },
+        //     { "id": 1, "text": "営業", "img": "/icons/sales.png", "func": "onclick=\"moveLinkPage('/sales')\"" },
+        //     { "id": 2, "text": "人事", "img": "/icons/person.png", "func": "onclick=\"moveLinkPage('/personnel')\"" },
+        //     { "id": 3, "text": "経理", "img": "/icons/piggy_bank.png", "func": "onclick=\"moveLinkPage('/piggy_bank')\"" },
+        //     { "id": 4, "text": "管理", "img": "/icons/pc_desk.png", "func": "onclick=\"moveLinkPage('/management')\"" },
+        //     { "id": 5, "text": "登録", "img": "/icons/regist.png", "func": "onclick=\"moveLinkPage('/regist')\"" },
+        //     { "id": 6, "text": "リサイクル", "img": "/icons/recycle.png", "func": "onclick=\"moveLinkPage('/recycle')\"" },
+        // ]
+        const parents = getHomeParentlist();
+        createSidebar(parents);
+
+        // Service Workerの登録
+        if ('serviceWorker' in navigator && 'PushManager' in window) {
+            navigator.serviceWorker.register('/sw.js')
+            .then(function(registration) {
+                console.log('Service Worker registered with scope:', registration.scope);
+                subscribeToPush(registration);
+            })
+            .catch(function(error) {
+                console.log('Service Worker registration failed:', error);
+            });
+        }
+
+        // プッシュ通知を購読する関数
+        function subscribeToPush(registration) {
+            registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: urlBase64ToUint8Array('LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZrd0V3WUhLb1pJemowQ0FRWUlLb1pJemowREFRY0RRZ0FFS3M2NXU1MTEyYm9DaGxLVitmVFJFUmY5T2VjMApzdzBUWThVMGFqVkhiUEx6bjh6dXFJY29reXRQTlhqUU9WSStZcklSOW5rTTVHM2F5VXc2My9waEtnPT0KLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg==%') // 公開鍵
+            })
+            .then(function(subscription) {
+                console.log('User is subscribed:', subscription);
+                sendSubscriptionToServer(subscription);
+            })
+            .catch(function(error) {
+                console.error('Failed to subscribe the user: ', error);
+            });
+        }
+
+        // サーバーにサブスクリプションを送信
+        function sendSubscriptionToServer(subscription) {
+            fetch('/push-notification/save-subscription', {
+                method: 'POST',
+                body: JSON.stringify(subscription),
+                headers: {
+                    'X-CSRF-TOKEN': /*[[${_csrf.token}]]*/,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => console.log('Subscription saved:', data))
+            .catch(error => console.error('Error saving subscription:', error));
+        }
+
+        // 公開鍵をURLベース64からUint8Arrayに変換
+        function urlBase64ToUint8Array(base64String) {
+            const padding = '='.repeat((4 - base64String.length % 4) % 4);
+            const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+            const rawData = window.atob(base64);
+            const outputArray = new Uint8Array(rawData.length);
+
+            for (let i = 0; i < rawData.length; ++i) {
+                outputArray[i] = rawData.charCodeAt(i);
+            }
+            return outputArray;
+        }
+
+        // // Push通知
+        // const publicKey = "BDtSdJ-595-GLPukMIt7t9HGcfgWQWQsMcpKTPWUGqOdfo4vGG9pIM4jAyOulTGsrioOd2lcoHAY8cK90_ZETxA"; // Spring Boot の VAPID 公開鍵       
+        // // const publicKey = "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZrd0V3WUhLb1pJemowQ0FRWUlLb1pJemowREFRY0RRZ0FFS3M2NXU1MTEyYm9DaGxLVitmVFJFUmY5T2VjMApzdzBUWThVMGFqVkhiUEx6bjh6dXFJY29reXRQTlhqUU9WSStZcklSOW5rTTVHM2F5VXc2My9waEtnPT0KLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg==%";
+        
+
+        // document.getElementById("subscribe").addEventListener("click", subscribePush);
+        // document.getElementById("sendNotification").addEventListener("click", sendNotification);
+
+
+        // // サーバーにサブスクリプション情報を送信する関数
+        // function sendSubscriptionToServer(subscription) {
+        //     // サブスクリプション情報をサーバーにPOSTリクエストで送信
+        //     fetch('/api/push/subscribe', {
+        //         method: 'POST',
+        //         headers: {
+        //             'X-CSRF-TOKEN': /*[[${_csrf.token}]]*/,
+        //             'Content-Type': 'application/json'
+        //         },
+        //         body: JSON.stringify(subscription)
+        //     })
+        //     .then(response => response.json())
+        //     .then(data => {
+        //         console.log("Server response:", data);
+        //     })
+        //     .catch(error => {
+        //         console.error("Error sending subscription to server:", error);
+        //     });
+        // }
+
+        // async function registerServiceWorker() {
+        //     if (!('serviceWorker' in navigator)) {
+        //         console.error("Service Worker 非対応");
+        //         return null;
+        //     }
+        //     return await navigator.serviceWorker.register("/sw.js");
+        // }
+
+        // async function subscribePush() {
+        //     const registration = await registerServiceWorker();
+        //     if (!registration || !('PushManager' in window)) {
+        //         console.error("プッシュ通知未対応");
+        //         return;
+        //     }
+
+        //     const subscription = await registration.pushManager.subscribe({
+        //         userVisibleOnly: true,
+        //         applicationServerKey: urlBase64ToUint8Array(publicKey)
+        //     });
+
+        //     await fetch("/api/push/subscribe", {
+        //         method: "POST",
+        //         body: JSON.stringify(subscription),
+        //         headers: {
+        //             'X-CSRF-TOKEN': /*[[${_csrf.token}]]*/,
+        //              "Content-Type": "application/json"
+        //         }
+        //     });
+
+        //     console.log("通知を購読しました", subscription);
+        // }
+
+        // async function sendNotification() {
+        //     await fetch("/api/push/send", {
+        //         method: "POST",
+        //         body: JSON.stringify({ "text":"Hello from Web Push!"}),
+        //         headers: {
+        //             'X-CSRF-TOKEN': /*[[${_csrf.token}]]*/,
+        //             "Content-Type": "application/json" 
+        //         }
+        //     });
+        // }
+
+        // function urlBase64ToUint8Array(base64String) {
+        //     const padding = "=".repeat((4 - base64String.length % 4) % 4);
+        //     const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+        //     const rawData = window.atob(base64);
+        //     const a = new Uint8Array([...rawData].map(char => char.charCodeAt(0)));
+        //     console.log(a);
+        //     return new Uint8Array([...rawData].map(char => char.charCodeAt(0)));
+        // }
+
+        // self.addEventListener('notificationclick', function(event) {
+        //     event.notification.close();
+        //     event.waitUntil(
+        //         clients.openWindow('https://www.example.com')
+        //     );
+        // });
+
+        window.addEventListener("load", () => {
+
+        });
+    </script>
+</body>
+
+</html>

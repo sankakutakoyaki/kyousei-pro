@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<body>
+    <div class="tablelist-container recycle" th:fragment="recycleregist-screen(breadcrumbs)">
+    <!-- <div class="recycleregist-container" th:fragment="recycleregist-screen(breadcrumbs)"> -->
+        <!-- パンくずリスト -->
+        <div layout:replace="~{fragment/breadcrumbFragment::title(${breadcrumbs})}"></div>
+        <!-- ヘッダー -->
+        <header th:replace="~{content/recycle/price/recyclePriceRegistHeaderFragment::regist-header-fragment}"></header>
+        <!-- コンテンツ -->
+        <!-- <div id="recyclepriceregist-area" name="recyclempriceregist-area" class="recycleregist-content"> -->
+            <div class="recycleprice-input header pc-style">
+                <label>区分</label>
+                <label>品目</label>
+                <label>税込</label>
+                <label>税抜</label>
+            </div>
+            <main id="scroll-area" name="recyclepriceregist-area">
+            <!-- <main class="scroll-area"> -->
+                <div class="recycleprice-input">
+                    <label class="pc-style">10</label>
+                    <label class="pc-style">エアコン</label>
+                    <label class="sp-style">10 エアコン</label>
+                    <input name="price" data-priceclass="price" data-pricecode="10" class="normal-input text-right"
+                        onfocus="this.select();">
+                    <input name="price" data-priceclass="ex_tax" data-pricecode="10" class="normal-input text-right"
+                        onfocus="this.select();">
+                </div>
+                <div class="recycleprice-input">
+                    <label class="pc-style">21</label>
+                    <label class="pc-style">テレビ・ブラウン管式（小）</label>
+                    <label class="sp-style">21 テレビ・ブラウン管式（小）</label>
+                    <input name="price" data-priceclass="price" data-pricecode="21" class="normal-input text-right"
+                        onfocus="this.select();">
+                    <input name="price" data-priceclass="ex_tax" data-pricecode="21" class="normal-input text-right"
+                        onfocus="this.select();">
+                </div>
+                <div class="recycleprice-input">
+                    <label class="pc-style">22</label>
+                    <label class="pc-style">テレビ・ブラウン管式（大）</label>
+                    <label class="sp-style">22 テレビ・ブラウン管式（大）</label>
+                    <input name="price" data-priceclass="price" data-pricecode="22" class="normal-input text-right"
+                        onfocus="this.select();">
+                    <input name="price" data-priceclass="ex_tax" data-pricecode="22" class="normal-input text-right"
+                        onfocus="this.select();">
+                </div>
+                <div class="recycleprice-input">
+                    <label class="pc-style">51</label>
+                    <label class="pc-style">テレビ・液晶プラズマ式（小）</label>
+                    <label class="sp-style">51 テレビ・液晶プラズマ式（小）</label>
+                    <input name="price" data-priceclass="price" data-pricecode="51" class="normal-input text-right"
+                        onfocus="this.select();">
+                    <input name="price" data-priceclass="ex_tax" data-pricecode="51" class="normal-input text-right"
+                        onfocus="this.select();">
+                </div>
+                <div class="recycleprice-input">
+                    <label class="pc-style">52</label>
+                    <label class="pc-style">テレビ・液晶プラズマ式（大）</label>
+                    <label class="sp-style">52 テレビ・液晶プラズマ式（大）</label>
+                    <input name="price" data-priceclass="price" data-pricecode="52" class="normal-input text-right"
+                        onfocus="this.select();">
+                    <input name="price" data-priceclass="ex_tax" data-pricecode="52" class="normal-input text-right"
+                        onfocus="this.select();">
+                </div>
+                <div class="recycleprice-input">
+                    <label class="pc-style">31</label>
+                    <label class="pc-style">冷蔵庫・冷凍庫（小）</label>
+                    <label class="sp-style">31 冷蔵庫・冷凍庫（小）</label>
+                    <input name="price" data-priceclass="price" data-pricecode="31" class="normal-input text-right"
+                        onfocus="this.select();">
+                    <input name="price" data-priceclass="ex_tax" data-pricecode="31" class="normal-input text-right"
+                        onfocus="this.select();">
+                </div>
+                <div class="recycleprice-input">
+                    <label class="pc-style">32</label>
+                    <label class="pc-style">冷蔵庫・冷凍庫（大）</label>
+                    <label class="sp-style">32 冷蔵庫・冷凍庫（大）</label>
+                    <input name="price" data-priceclass="price" data-pricecode="32" class="normal-input text-right"
+                        onfocus="this.select();">
+                    <input name="price" data-priceclass="ex_tax" data-pricecode="32" class="normal-input text-right"
+                        onfocus="this.select();">
+                </div>
+                <div class="recycleprice-input">
+                    <label class="pc-style">40</label>
+                    <label class="pc-style">洗濯機・衣類乾燥機</label>
+                    <label class="sp-style">40 洗濯機・衣類乾燥機</label>
+                    <input name="price" data-priceclass="price" data-pricecode="40" class="normal-input text-right"
+                        onfocus="this.select();">
+                    <input name="price" data-priceclass="ex_tax" data-pricecode="40" class="normal-input text-right"
+                        onfocus="this.select();">
+                </div>
+            </main>
+        <!-- </div> -->
+
+        <button type="button" class="page-top"></button>
+        <div id="loading">
+            <div class="spinner"></div>
+        </div>
+    </div>
+</body>
+
+</html>

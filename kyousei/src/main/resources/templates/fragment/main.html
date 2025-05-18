@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+<body>
+    <!-- 基本のフラグメント -->
+    <div class="normal-main" th:fragment="main-fragment">
+        <div th:replace="~{fragment/headerFragment::header-fragment-hamburger}"></div>
+        <div class="normal-content">
+            <div th:replace="~{__${sidebarName}__}"></div>
+            <div layout:fragment="layout-body"></div>
+        </div>
+        <div class="sp-style">
+            <div th:replace="~{fragment/footerFragment::footer-fragment}"></div>
+        </div>
+
+        <div id="hamburger-area"></div>
+        <div id="form-dialog-area"></div>
+        <div id="dialog-area"></div>
+        <div id="print-dialog-area"></div>
+    </div>
+
+    <!-- サイドバーなしのフラグメント -->
+    <div class="normal-main" th:fragment="main-fragment-nosidebar">
+        <div th:replace="~{fragment/headerFragment::header-fragment}"></div>
+        <div class="normal-content sidebar-none">
+            <div layout:fragment="layout-body"></div>
+        </div>
+        <div class="sp-style">
+            <div th:replace="~{fragment/footerFragment::footer-fragment}"></div>
+        </div>
+        <div id="form-dialog-area"></div>
+        <div id="dialog-area"></div>
+        <div id="print-dialog-area"></div>
+    </div>
+
+</body>

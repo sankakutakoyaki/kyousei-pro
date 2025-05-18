@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html xmlns="http://www.thymeleaf.org">
+
+<body>
+    <!-- 登録画面リスト用ヘッダー -->
+    <header th:fragment="header-fragment">
+
+        <div>
+            <!-- 期間指定ボックス -->
+            <div class="dailypay-between">
+                <input name="startdate" class="normal-input" type="date" value="" onfocus="this.select();">
+                <span>〜</span>
+                <input name="enddate" class="normal-input" type="date" value="" onfocus="this.select();">
+            </div>
+            <button name="search-btn" class="normal-btn ok" type="button" onclick="execSearch()">
+                <span>検索</span>
+            </button>
+
+            <select name="employee-select" class="normal-select" type="text" value=""></select>
+            <select name="paystate-select" class="normal-select" type="text" value=""></select>
+        </div>
+
+        <div>
+            <!-- 日付移動ボタン -->
+            <div class="dailypay-month-select">
+                <button name="prev-month-btn" class="normal-btn frameless" type="button" onclick="execSpecifyPeriod('prev-month')">
+                    <span>前月</span>
+                </button>
+                <button name="this-month-btn" class="normal-btn frameless" type="button" onclick="execSpecifyPeriod('this-month')">
+                    <span>今月</span>
+                </button>
+                <button name="next-month-btn" class="normal-btn frameless" type="button" onclick="execSpecifyPeriod('next-month')">
+                    <span>次月</span>
+                </button>
+            </div>
+            <!-- 日付移動ボタン -->
+            <div class="dailypay-day-select">
+                <button name="prev-day-btn" class="normal-btn frameless" type="button" onclick="execSpecifyPeriod('prev-day')">
+                    <span>前日</span>
+                </button>
+                <button name="today-btn" class="normal-btn frameless" type="button" onclick="execSpecifyPeriod('today')">
+                    <span>今日</span>
+                </button>
+                <button name="next-day-btn" class="normal-btn frameless" type="button" onclick="execSpecifyPeriod('next-day')">
+                    <span>翌日</span>
+                </button>
+            </div>
+            <!-- 日付移動ボタン -->
+            <div class="dailypay-week-select">
+                <button name="prev-week-btn" class="normal-btn frameless" type="button" onclick="execSpecifyPeriod('prev-week')">
+                    <span>前週</span>
+                </button>
+                <button name="this-week-btn" class="normal-btn frameless" type="button" onclick="execSpecifyPeriod('this-week')">
+                    <span>今週</span>
+                </button>
+                <button name="next-week-btn" class="normal-btn frameless" type="button" onclick="execSpecifyPeriod('next-week')">
+                    <span>次週</span>
+                </button>
+            </div>
+            <button name="download-btn" class="normal-btn" type="button" onclick="execPrint(this)">
+                <span>印刷</span>
+            </button>
+            <button name="reset-btn" class="normal-btn" type="button" onclick="execPayment(this)">
+                <span>支払い</span>
+            </button>
+            <button name="download-btn" class="normal-btn" type="button" onclick="downloadCsvFile('/tablelist/download/csv', this)">
+                <span>CSV</span>
+            </button>
+            
+        </div>
+
+    </header>
+
+</body>
+
+</html>

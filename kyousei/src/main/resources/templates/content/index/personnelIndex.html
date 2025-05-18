@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{content/index/indexLayout}">
+
+<head>
+    <title>人事</title>
+</head>
+
+<body>
+    <div class="normal-body" layout:fragment="layout-body">
+        <div class="index-btn-container">
+            <div class="index-btn" th:onclick="moveLinkPage('/list/fulltime')">
+                <img th:src="@{/icons/human.png}"><span>社員</span>
+            </div>
+            <div class="index-btn" th:onclick="moveLinkPage('/list/parttime')">
+                <img th:src="@{/icons/parttime.png}"><span>アルバイト</span>
+            </div>
+            <div class="index-btn" th:onclick="moveLinkPage('/list/partner')">
+                <img th:src="@{/icons/partner.png}"><span>施工担当</span>
+            </div>
+            <div class="index-btn" th:onclick="moveLinkPage('/list/staff')">
+                <img th:src="@{/icons/staff.png}"><span>営業担当</span>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

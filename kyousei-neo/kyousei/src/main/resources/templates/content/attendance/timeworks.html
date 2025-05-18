@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{layout/tablelist-noside}">
+
+<head>
+    <title>打刻一覧</title>
+    <style type="text/css">
+        .clock {
+            font-family: 'Share Tech Mono', monospace;
+            color: var(--black);
+            text-align: center;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+        /* 日付のスタイル */
+        .clock-date {
+            font-size: 1.5rem;
+        }
+        /* 時間のスタイル */
+        .clock-time {
+            font-size: 4rem;
+        }
+        .timeworks-container {            
+            display: grid;
+            grid-template-columns: 20rem 1fr;
+            grid-template-rows: 1fr auto;
+            width: 100%;
+            height: 100%;
+            padding: 1rem 3rem;
+        }
+        .timeworks-content {
+            row-gap: 1rem;
+            grid-template-rows: auto auto auto auto 1fr;
+        }
+        .table-container.timeworks {
+            grid-template-rows: 1fr auto;
+            padding: 0 2rem;
+            width: 40rem;
+        }
+        .normal-table.timeworks tr {
+            grid-template-columns: 2rem 10rem 5rem 5rem 8rem;
+        }
+        .normal-table.timeworks tbody tr[name="data-row"] {
+            height: 2.5rem;
+            border: 0;
+        }
+        .normal-table.timeworks tbody tr[name="data-row"].selected {
+            background-color: transparent;
+        }
+        .normal-table.timeworks tbody tr[name="data-row"]:hover+tr[name="data-row"]:last-child {
+            border: 0;
+        }
+        .input-area.code-box .img-btn {
+            position: absolute;
+            width: 2.5rem;
+            bottom: 0;
+            right: 0;
+        }
+        @media screen and (max-width:1240px) {
+        }
+        @media screen and (max-width:560px) {
+            .timeworks-container {
+                display: block;
+                width: 100%;
+                padding: 0;
+            }
+            .normal-table.timeworks tr {
+                grid-template-columns: 1fr;
+            }
+            .normal-table.timeworks tr th {
+                display: none;
+            }
+            .input-area.code-box {
+                grid-template-columns: 35% 65%;
+            }
+            .input-area.time-btn {
+                grid-template-columns: 1fr 1fr;
+            }
+            .input-area.code-box .img-btn {
+                bottom: .5rem;
+                right: 0;
+            }
+        }
+    </style>
+</head>
+
+<body layout:fragment="layout-body">
+    <div class="normal-body">
+        <div class="timeworks-container">
+            <div class="form-parts timeworks-content">
+                <!-- パンくずリスト -->
+                <div
+                    th:with="breadcrumbs=${ { {url:'/',label:'ホーム'},{url:'/personnel', label:'人事・労務'},{url:'', label:'打刻一覧'} } }">
+                    <div th:replace="~{fragment/main::breadcrumb-fragment(${breadcrumbs})}"></div>
+                </div>
+
+                <div class="clock">
+                    <div>
+                        <span class="clock-date">0000年00月00日（日）</span>
+                    </div>
+                    <div>
+                        <span class="clock-time">00:00:00</span>
+                    </div>
+                </div>
+
+                <!-- <input id="employee-id" type="hidden" value="">
+                <input id="timeworks-id" type="hidden" value=""> -->
+
+                <!-- PC画面用勤怠ボタン -->
+                <div class="input-area code-box">
+                    <div class="form-parts w30">
+                        <label>コード</label>
+                        <input autofocus id="code" class="normal-input" type="text" inputmode="numeric" pattern="\d*" value="" onfocus="this.select();">
+                        <!-- <div name="search-btn" class="img-btn" onclick="execCodeChanged()"><img title="追加" src="/icons/search.png"></div> -->
+                    </div>
+                    <div class="form-parts w70">
+                        <label>従業員名</label>
+                        <input id="name" class="normal-input" type="text" disabled>
+                    </div>
+                </div>    
+                <div class="input-area time-btn">  
+                    <button name="start-btn" class="large-btn" type="button" onclick="execTimeWorks('start')"><span>出勤</span></button>
+                    <button name="end-btn" class="large-btn" type="button" onclick="execTimeWorks('end')"><span>退勤</span></button>
+                </div>
+            </div>
+
+            <!-- リスト -->
+             <div class="table-container timeworks">
+                <main id="scroll-area">
+                    <table id="tablelist" class="normal-table timeworks">
+                        <tbody></tbody>
+                    </table>
+                    <button type="button" class="page-top"></button>
+                </main>
+                <!-- フッター -->
+                <footer id="footer-text" class="pc-style"><span></span></footer>
+             </div>
+        </div>
+    </div>
+    <script th:src="@{/js/default.js}"></script>
+    <script th:src="@{/js/tablelist.js}"></script>
+    <script th:src="@{/js/timeworks.js}"></script>
+    <script type="text/JavaScript" th:inline="JavaScript">
+        const token = /*[[${_csrf.token}]]*/;
+        const headerNames = ['', '氏名', '出勤', '退勤', '営業所'];
+        // const origin = /*[[${entity}]]*/;
+        let entity = {};
+        const username = /*[[${username}]]*/;
+
+// -------------------------------------------------------------------------------------------------------------------------------------- 時計作成
+        function clock() {
+            // 現在の日時・時刻の情報を取得
+            const d = new Date();    
+            // 年を取得
+            let year = d.getFullYear();
+            // 月を取得
+            let month = d.getMonth() + 1;
+            // 日を取得
+            let date = d.getDate();
+            // 曜日を取得
+            let dayNum = d.getDay();
+            const weekday = ["(日)", "(月)", "(火)", "(水)", "(木)", "(金)", "(土)"];
+            let day = weekday[dayNum];
+            // 時を取得
+            let hour = d.getHours();
+            // 分を取得
+            let min = d.getMinutes();
+            // 秒を取得
+            let sec = d.getSeconds();
+
+            // 1桁の場合は0を足して2桁に
+            month = month < 10 ? "0" + month : month;
+            date = date < 10 ? "0" + date : date;
+            hour = hour < 10 ? "0" + hour : hour;
+            min = min < 10 ? "0" + min : min;
+            sec = sec < 10 ? "0" + sec : sec;
+
+            // 日付・時刻の文字列を作成
+            let today = `${year}年${month}月${date}日 ${day}`;
+            let time = `${hour}:${min}:${sec}`;
+
+            // 文字列を出力
+            document.querySelector(".clock-date").innerText = today;
+            document.querySelector(".clock-time").innerText = time;
+        };
+
+// -------------------------------------------------------------------------------------------------------------------------------------- 更新処理
+        // async function execTimeWorks(timeCategory) {
+        //     startProcessing();
+
+        //     await setTimeworks(timeCategory);
+
+        //     processingEnd();
+        // }
+
+        // async function setTimeworks(timeCategory) {
+        //     const time = getNowHyphen();
+        //     const position = await getLoacation();
+        //     entity.user_name = username;
+        //     if (timeCategory == "start") {
+        //         entity.start_time = time;
+        //         entity.comp_start_time = time;
+        //         entity.start_latitude = position.coords.latitude;
+        //         entity.start_longitude = position.coords.longitude;
+        //     } else if (timeCategory == "end") {
+        //         entity.end_time = time;
+        //         entity.comp_end_time = time;
+        //         entity.end_latitude = position.coords.latitude;
+        //         entity.end_longitude = position.coords.longitude;
+        //     }
+        //     const data = JSON.stringify(entity);
+        //     const url = '/timeworks/regist/today';
+        //     const contentType = 'application/json';
+        //     const result = await postFetch(url, data, token, contentType);
+        //     await updateDisplay();
+        // }
+
+        async function updateDisplay() {
+            startProcessing();
+
+            deleteElements('tablelist');
+            // リストデータ取得
+            const getResponse = await fetch('/timeworks/get/today');
+            const list = await getResponse.json();
+            
+            // 画面更新
+            updateListDisplay("tablelist", headerNames, list, "footer-text", false);
+            
+            const code = document.getElementById('code');
+            const name = document.getElementById('name');
+            // const empid = document.getElementById('employee-id');
+            // const timeid = document.getElementById('timeworks-id');
+            // if (code == null || name == null || empid == null || timeid == null) return;
+            if (code == null || name == null) return;
+            code.value = "";
+            name.value = "";
+            // empid.value = "";
+            // timeid.value = "";
+            // code.focus();
+
+            processingEnd();
+
+            code.focus();
+        }
+
+        // コードから[timeworks]を取得して、名前を表示
+        async function searchForNameByCode(e) {
+            e.preventDefault();
+            const code = document.getElementById('code');
+            const name = document.getElementById('name');
+            // const empid = document.getElementById('employee-id');
+            // const timeid = document.getElementById('timeworks-id');
+            // if (code == null || name == null || empid == null || timeid == null) return;
+            if (code == null || name == null) return;
+            if (code.value == "" || isNaN(code.value)) {
+                name.value = "";
+                // empid.value = "";
+                // timeid.value = "";
+                return;
+            }
+
+            // [id=code]に入力されたコードから[timeworks]を取得して[id=name]に入力する
+            const data = "code=" + encodeURIComponent(parseInt(code.value));
+            const url = '/timeworks/get/today/code';
+            const contentType = 'application/x-www-form-urlencoded';
+            // [timeworks]を取得
+            const result = await postFetch(url, data, token, contentType);
+            entity = await result.json();
+            if (entity != null && entity.employee_id > 0) {
+                // empid.value = entity.employee_id;
+                name.value = entity.full_name;
+                // timeid.value = entity.timeworks_id;
+                checkTimeWorksStartSaved(entity);
+                return;
+            } else {
+                code.value = ""
+                name.value = "";
+                // empid.value = "";
+                // timeid.value = "";
+                messageDialog("コードが登録されていません", 'エラー', 'red');
+                return;
+            }
+        }
+        // コード入力ボックスからフォーカスが外れた時の処理
+        function execCodeBlur(e) {
+            if (e.target.value == "") {
+                const name = document.getElementById('name');
+                name.value = "";
+                return;
+            }
+            searchForNameByCode(e);
+        }
+        // コード入力ボックスでエンターを押した時の処理
+        function execCodeChanged(e) {
+            if (e == null) return;
+            // ボックスが空白なら処理しない
+            if (e.target.value == "") {
+                const name = document.getElementById('name');
+                name.value = "";
+                return;
+            }
+            if(e.key === 'Enter'){
+                e.preventDefault();
+                searchForNameByCode(e);
+            }
+        }
+//         // リセットの場合は引数を[null]にする
+//         function setItems(ent) {
+//             const code = document.getElementById('code');
+//             const name = document.getElementById('name');
+//             const empid = document.getElementById('employee-id');
+//             const catid = document.getElementById('category-id');
+//             const timeworksid = document.getElementById('timeworks-id');
+//             if (code == null || name == null || empid == null || catid == null || timeworksid == null) { return; }
+
+//             if (ent == null) {
+//                 empid.value = /*[[${employee_id}]]*/;
+//                 catid.value = /*[[${category_id}]]*/;
+//                 timeworksid.value = "";
+//                 code.value = "";
+//                 name.value = "";
+//             } else {
+//                 entity = ent;
+//                 empid.value = ent.employee_id;
+//                 catid.value = ent.category_id;
+//                 timeworksid.value = ent.timeworks_id;
+//                 name.value = ent.full_name;0
+//                 checkTimeWorksStartSaved(ent.employee_id);
+//             }
+//             return;
+//         }
+
+// -------------------------------------------------------------------------------------------------------------------------------------- 出勤退勤確認
+        function checkTimeWorksStartSaved(entity) {
+            if (entity != null) {
+                if (entity.comp_start_time != null) {
+                    const endBtn = document.querySelector('button[name="end-btn"]');
+                    endBtn.focus();
+                } else {
+                    const startBtn = document.querySelector('button[name="start-btn"]');
+                    startBtn.focus();
+                }
+            }
+        }
+
+// -------------------------------------------------------------------------------------------------------------------------------------- リスト画面作成
+        // function createTable(list) {
+        function createListContent(tbl, list) {
+            list.forEach(function (item) {
+                let newRow = tbl.insertRow();
+                // ID（Post送信用）
+                newRow.setAttribute('id', 'row00-' + item.employee_id);
+                newRow.setAttribute('name', 'data-row');
+                newRow.setAttribute('data-id', item.employee_id);
+                // 調整用セル
+                newRow.insertCell();
+                // 担当者名
+                newRow.insertAdjacentHTML('beforeend', '<td><span>' + item.full_name + '</span></td>');
+                // 出勤時刻
+                newRow.insertAdjacentHTML('beforeend', '<td><span>' + (item.comp_start_time ?? "") + '</span></td>');
+                // 退勤時刻
+                newRow.insertAdjacentHTML('beforeend', '<td><span>' + (item.comp_end_time ?? "") + '</span></td>');
+                // 営業所
+                newRow.insertAdjacentHTML('beforeend', '<td><span>' + (item.office_name ?? "") + '</span></td>');
+            });
+            // const tbl = document.getElementById('tablelist');
+            // if (tbl != null) {
+            //     list.forEach(function(item){
+            //         // 隠しID（Post送信用）
+            //         let newRow = tbl.insertRow();
+            //         newRow.setAttribute('name', 'data-row');
+            //         // 氏名
+            //         let nameCell = newRow.insertCell();
+            //         nameCell.innerHTML = '<span>' + item.full_name + '</span>';
+            //         // 出勤時刻
+            //         let startCell = newRow.insertCell();
+            //         if (item.start_time == ''){
+            //             startCell.innerHTML += '<span></span>';
+            //         } else {
+            //             startCell.innerHTML += '<span>' + (item.comp_start_time ?? "") + '</span>';
+            //         }
+            //         // 退勤時刻
+            //         let endCell = newRow.insertCell();
+            //         if (item.end_time == ''){
+            //             endCell.innerHTML += '<span></span>';
+            //         } else {
+            //             endCell.innerHTML += '<span>' + (item.comp_end_time ?? "") + '</span>';
+            //         }
+            //         // 営業所
+            //         let officeCell = newRow.insertCell();
+            //         if (item.office_name == ''){
+            //             officeCell.innerHTML += '<span>登録なし</span>';
+            //         } else {
+            //             officeCell.innerHTML += '<span>' + (item.office_name ?? "") + '</span>';
+            //         }                    
+            //     });
+            // }
+        };
+
+// -------------------------------------------------------------------------------------------------------------------------------------- 初期化時の処理
+        window.addEventListener("load", async () => {
+            // サイドバーを作成する
+            const parents = getParentlist();
+            const childlist = getChildlist();
+            createAccordionSidebar(parents, childlist);
+            // 1秒ごとにclock関数を呼び出す
+            setInterval(clock, 1000);
+            // コード入力ボックスでエンターキーが押された時の処理を登録
+            document.getElementById('code').addEventListener('keydown', function (e) { execCodeChanged(e); });
+            // コード入力ボックスのフォーカスが外れた時の処理を登録
+            document.getElementById('code').addEventListener('blur', function (e) { execCodeBlur(e); });
+
+            await updateDisplay();
+        });
+
+    </script>
+
+</body>
+
+</html>

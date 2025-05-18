@@ -1,0 +1,222 @@
+@charset "UTF-8";
+
+/******************************************************************************************************* 基本 */
+
+.dialog {
+    position: fixed;
+    z-index: 100;
+    width: 100%;
+    height: 100%;
+    inset: 0;
+    margin: auto;
+    background-color: rgba(0, 0, 0, 0.5);
+    overflow: auto;
+    transition: .4s;
+}
+
+.dialog.trans {
+    background-color: transparent;
+}
+
+.dialog.clear-back {
+    background-color: transparent;
+}
+
+.dialog-header {
+    display: flex;
+    height: fit-content;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    background-color: var(--theme-orange);
+    border-radius: .5rem .5rem 0 0;
+}
+
+.dialog-header.red {
+    background-color: var(--red);
+    color: var(--white);
+}
+
+.dialog-header.blue {
+    background-color: var(--theme-blue);
+    color: var(--white);
+}
+
+.dialog-header.yellow {
+    background-color: var(--yellow);
+    color: var(--black);
+}
+
+.dialog-header>.img-btn {
+    width: 2rem;
+}
+
+.dialog-header>.img-btn>img:hover {
+    background-color: transparent;
+    filter: brightness(.5) invert(.5);
+}
+
+.dialog-content {
+    display: grid;
+    gap: .5rem;
+    overflow: auto;
+    padding: 1rem 2rem;
+    justify-items: start;
+    grid-template-columns: repeat(12, 1fr);
+}
+
+.dialog-content label {
+    font-size: .8rem;
+    margin: .5rem 0 0 .2rem;
+}
+
+.dialog-footer {
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(12, 1fr);
+    gap: .5rem;
+    padding: 2rem;
+    border-radius: 0 0 .5rem .5rem;
+}
+
+.dialog-footer.msg {
+    display: flex;
+    justify-content: right;
+}
+
+.dialog-footer.msg>button {
+    width: fit-content;
+    padding: 0 2rem;
+}
+
+/******************************************************************************************************* 入力フォーム */
+
+.form-dialog {
+    position: fixed;
+    z-index: 100;
+    width: fit-content;
+    height: fit-content;
+    inset: 0;
+    margin: auto;
+    background-color: var(--dialog-bg);
+    max-height: 100%;
+    border-radius: .5rem;
+    border: .5px solid var(--shadow);
+    box-shadow: 0 0 8px var(--shadow);
+    overflow: auto;
+}
+
+.form-dialog-parts {
+    display: grid;
+    width: 100%;
+    gap: .5rem;
+}
+
+.form-dialog-parts.separate {
+    grid-template-columns: repeat(12, 1fr);
+    align-items: center;
+}
+
+/******************************************************************************************************* メッセージ */
+
+.msg-dialog-content {
+    display: grid;
+    min-height: 5rem;
+    min-width: 15rem;
+    max-height: 90%;
+    gap: .5rem;
+    overflow: auto;
+    padding: 2rem 2rem 0 2rem;
+    justify-items: center;
+    align-items: center;
+    grid-template-columns: 1fr;
+    white-space: pre-line;
+}
+
+/******************************************************************************************************* ケバブメニュー */
+
+.menu-dialog {
+    position: absolute;
+    z-index: 150;
+    background-color: var(--white);
+    border-radius: .3rem;
+    border: .5px solid var(--shadow);
+    box-shadow: 0 0 8px var(--shadow);
+    width: fit-content;
+    height: fit-content;
+}
+
+.menu-dialog>ul>li>img {
+    width: 1rem;
+    height: 1rem;
+    margin-right: 1rem;
+}
+
+.menu-dialog.context {
+    top: 3.5rem;
+    right: 1rem;
+    padding: 1rem;
+}
+
+.menu-dialog.context>ul {
+    padding: 0;
+}
+
+.menu-dialog.context>ul>li {
+    padding: .5rem 1rem;
+    cursor: var(--cursor);
+    border: 0;
+    border-radius: .3rem;
+}
+
+.menu-dialog.context>ul>li:hover {
+    background-color: var(--hover-bg);
+}
+
+.menu-dialog.context>ul>li.disabled {
+    user-select: none;
+    color: var(--br);
+}
+
+.menu-dialog.context>ul>li.disabled>img {
+    filter: brightness(.5) invert(.5);
+}
+
+.menu-dialog.context>ul>li.disabled:hover {
+    background-color: transparent;
+    cursor: default;
+}
+
+
+/******************************************************************************************************* スマホ表示のみ */
+
+@media screen and (max-width:560px) {
+
+    .form-dialog {
+        border-radius: 0;
+    }
+    
+    .form-dialog .dialog-content {
+        display: block;
+        /* height: 100%; */
+    }
+
+    .form-dialog .dialog-header,
+    .form-dialog .dialog-footer {
+        border-radius: 0;
+    }
+
+    .form-dialog-parts {
+        display: block;
+    }
+
+    .form-dialog-parts label {
+        display: inline-block;
+        margin-top: .5rem;
+    }
+
+    .form-dialog .normal-input,
+    .form-dialog .normal-select {
+        margin-top: .5rem;
+    }
+}

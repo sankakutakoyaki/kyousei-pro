@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{content/category/regist/classCategoryRegistLayout}">
+
+<body>
+    <div class="normal-body categoryregist" layout:fragment="layout-body">
+        <div th:with="breadcrumbs=${ { {url:'/',label:'ホーム'},{url:'/regist', label:'登録'} } }">
+            <div th:replace="~{content/category/regist/categoryregistScreen::categoryregist-screen(${breadcrumbs})}"></div>
+        </div>        
+    </div>
+</body>
+
+</html>

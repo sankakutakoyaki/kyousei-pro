@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,viewport-fit=cover">
+
+<head>
+    <meta charset="UTF-8">
+    <link th:href="@{/css/category.css}" rel="stylesheet" type="text/css">
+    <style type="text/css">
+        .categoryregist-container {
+            position: relative;
+            display: grid;
+            grid-template-rows: auto auto 1fr;
+            overflow: hidden;
+            padding: 0 2rem;
+            width: 66rem;
+            height: 100%;
+        }
+
+        .categoryregist-container>main {
+            overflow: hidden;
+            height: 100%;        
+        }
+
+        .categoryregist-content {
+            width: 100%;
+            height: 100%;
+            display: grid;
+            grid-template-columns: repeat(3, 20rem);
+            gap: 1rem;
+        }
+
+        .categoryregist-header {
+            display: grid;
+            grid-template-columns: 1fr 22rem 5rem 5rem 1fr;
+            gap: .5rem;
+            height: 4rem;
+            align-items: center;
+            margin-bottom: 2rem;
+            background-color: bisque;
+            border-radius: .5rem;
+        }
+
+        .categoryregist-list {
+            width: 20rem;
+            overflow: hidden;
+            height: 100%;  
+        }
+
+        .categoryregist-list .scroll-area {
+            height: 80%;
+        }
+        
+        .categoryregist-content .img-btns {
+            display: flex;
+        }
+
+        .categoryregist-content .img-btn {
+            margin-bottom: .5rem;
+            align-items: center;
+        }
+
+        .categoryregist-content .img-btn>img {
+            padding: .2rem;
+            width: 2rem;
+        }
+
+        @media screen and (max-width:560px) {
+            .categoryregist-container {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div th:replace="~{fragment/main::main-fragment-nosidebar}"></div>
+
+    <script th:src="@{/js/default.js}"></script>
+    <script th:src="@{/js/dialog.js}"></script>
+    <script th:src="@{/js/list.js}"></script>
+    <script th:src="@{/js/combo.js}"></script>
+    <script th:src="@{/js/categoryregist.js}"></script>
+    <script type="text/JavaScript" th:inline="JavaScript">
+        const updateStateCode = /*[[${updateStateCode}]]*/;
+        const createStateCode = /*[[${createStateCode}]]*/;
+        const deleteStateCode = /*[[${deleteStateCode}]]*/;
+        const token = /*[[${_csrf.token}]]*/;
+        let list = /*[[${list}]]*/;
+        let origin = [];
+
+// 画面操作 ----------------------------------------------------------------------------------------------------------------------------------
+
+            // カテゴリーリスト取得
+            function getCategorylist(classId) {
+                const items = list.filter(value => { return value.item_class_id == classId && value.category_id == 0});
+                let categorylist = [];
+                items.forEach(function (item) {
+                    let category = {"code":item.code, "number":item.item_category_id, "state":item.state, "text":item.category_name};
+                    categorylist.push(category);
+                });
+                return categorylist;
+            }
+
+            // 保存時の処理
+            async function execSaveCategoryRegist() {
+                await saveCategoryRegist("/category/item/save", "/category/item/get");
+            }
+
+            // 仮IDを取得する
+            function getCategoryRegistMaxId() {
+                const id = Math.max.apply(null, list.map(function (value) { return value.item_category_id; }));
+                return id > 0 ? id: 0;
+            }
+
+            // 仮CODEを取得する
+            function getCategoryRegistMaxCode(templist) {
+                const code = Math.max.apply(null, templist.map(function (value) { return value.code; }));
+                return code > 0 ? code: 0;
+            }
+
+            // listからアイテムを選択する
+            function getSelectedItemCategoryRegistFromList(selectId) {
+                return list.find(function (value) { return value.item_category_id == selectId; });
+            }
+
+            // listからアイテムを選択する
+            function getSelectedAllItemCategoryRegistFromList(selectId) {
+                return list.filter(value => { return value.item_category_id == selectId || value.category_id == selectId || value.subcategory_id == selectId });
+            }
+
+            // listに追加する
+            function addCategoryRegistItemToList(parent) {
+                const parentArea = parent.closest('[name="categoryregist-area"]');
+                // 全てのリストエリアを取得
+                const parentElms = parentArea?.querySelectorAll('[name="simple-list"]');
+                if (parentElms == null) return;
+                const listNumber = Number(parent.dataset.listnumber);
+                const maxId = getCategoryRegistMaxId();
+
+                // 全てのリストエリアの,選択しているアイテムのIDを取得する
+                let category_id = 0;
+                let subcategory_id = 0;
+                parentElms.forEach(function (listArea) {
+                    let selectElm = listArea.querySelector('li.selected');
+                    let selectNum = selectElm == null ? 0 : Number(selectElm.dataset.number);
+                    switch (Number(listArea.dataset.listnumber)) {
+                        case 1:
+                            if (listNumber > 1) {
+                                category_id = selectNum;
+                            }
+                            break;
+                        case 2:
+                            if (listNumber > 2) {
+                                subcategory_id = selectNum;
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+                });
+                const inputElm = parent.querySelector('input');
+                const templist = list.filter(value => { return value.category_id == category_id && value.subcategory_id == subcategory_id });
+                const maxCode = getCategoryRegistMaxCode(templist);
+                const classId = getCategoryClassId();
+                const category = { "item_category_id": maxId + 1, "item_class_id":classId, "code": maxCode + 1, "category_id": category_id, "subcategory_id": subcategory_id, "category_name": inputElm.value, "state": createStateCode };
+                list.push(category);
+            }
+
+            // listに追加する
+            function updateCategoryRegistItemToList(selectElm) {
+                const selectId = selectElm.dataset.number;
+                const item = list.find(value => { return value.item_category_id == selectId });
+                if (item != null) {
+                    item.category_name = selectElm.textContent;
+                    item.state = updateStateCode;
+                }
+            }
+
+            // リストデータ取得
+            function getCategoryRegistItems(elm) {
+                if (elm == null) return;
+
+                const parent = elm.closest('[name="simple-list"]');
+                if (parent == null) return;
+                const selectElm = parent.querySelector('li.selected');
+                if (selectElm == null) return;
+
+                const classId = getCategoryClassId();
+
+                const selectId = selectElm.dataset.number;
+                const item = getSelectedItemCategoryRegistFromList(selectId);
+                if (item == null) return;
+                const categoryid = item.category_id == 0 ? selectId : item.category_id;
+                let subcategoryid = 0;
+                if (item.category_id > 0) {
+                    subcategoryid = item.subcategory_id == 0 ? selectId : item.subcategory_id;
+                }
+                const items = list.filter(value => { return value.item_class_id == classId && value.category_id == categoryid && value.subcategory_id == subcategoryid });
+                if (items == null) return;
+
+                let categorylist = [];
+                items.forEach(function (item) {
+                    let category = { "number": item.item_category_id, "code": item.code, "state": item.state, "text": item.category_name };
+                    categorylist.push(category);
+                });
+                
+                categorylist = categorylist.sort((a, b) => a.code > b.code ? 1 : -1);
+                return categorylist;
+            }
+
+            // listから選択したアイテムのコピーを作成する(階層全て)
+            function copyCategoryRegistItem(selectId) {
+                const parent = selectId.closest('[name="simple-list"]');
+                if (parent == null) return;
+                const selectItem = parent.querySelector('li.selected');
+                const clone_selectItem = selectItem.cloneNode(true);
+
+                const listElm = parent.querySelector('ul');
+                const listItems = parent.querySelectorAll('li');
+                const maxId = getCategoryRegistMaxId();
+                clone_selectItem.onclick = e => changeCategoryRegistItems(e);    
+                clone_selectItem.setAttribute('id', 'category-' + (maxId + 1))
+                clone_selectItem.setAttribute('data-code', listItems.length + 1);
+                clone_selectItem.setAttribute('data-number', maxId + 1);
+                clone_selectItem.setAttribute('data-state', createStateCode);
+                clone_selectItem.classList.remove('selected');
+                clone_selectItem.addEventListener("dragstart", onDragStart);
+                clone_selectItem.addEventListener("drop", onDrop);
+                clone_selectItem.addEventListener("dragover", onDragover);
+                clone_selectItem.addEventListener("dragenter", onDragenter);
+                clone_selectItem.addEventListener("dragleave", onDragleave);
+
+                const inputText = checkDuplicatesCategoryRegistItemAddAfterNumber(parent);
+                clone_selectItem.innerHTML = inputText;
+                listElm.insertAdjacentElement('beforeend', clone_selectItem);
+
+                const selectItemId = Number(selectItem.dataset.number);
+                const elm = list.find(function (value) { return value.item_category_id == selectItemId; });
+                if (elm != null) {
+                    let category = { "item_category_id": maxId + 1, "item_class_id":elm.item_class_id, "code": listItems.length + 1, "category_id": elm.category_id, "subcategory_id": elm.subcategory_id, "category_name": inputText, "state": createStateCode };
+                    list.push(category);
+                }
+                const subcategoryitems = list.filter(value => { return value.category_id == selectItemId && value.subcategory_id == 0 });
+                const subsubcategoryitems = list.filter(value => { return value.category_id == selectItemId && value.subcategory_id > 0 });
+                if (subcategoryitems != null) {
+                    let id = maxId + 1
+                    subcategoryitems.forEach(function (item) {
+                        id++;
+                        let subcategoryId = id;
+                        let subcategory = { "item_category_id": subcategoryId, "item_class_id":item.item_class_id, "code": item.code, "category_id": maxId + 1, "subcategory_id": 0, "category_name": item.category_name, "state": createStateCode };
+                        list.push(subcategory);
+
+                        if (subsubcategoryitems != null) {
+                            subsubcategoryitems.forEach(function (subitem) {
+                                id++;
+                                let subsubcategory = { "item_category_id": id, "item_class_id":subitem.item_class_id, "code": subitem.code, "category_id": maxId + 1, "subcategory_id": subcategoryId, "category_name": subitem.category_name, "state": createStateCode };
+                                list.push(subsubcategory);
+                            });
+                        }
+                    });
+                }
+            }
+
+// 初期化時の処理 ------------------------------------------------------------------------------------------------------------------------------------
+            // 読み込み時の処理
+            window.addEventListener("load", () => {
+                origin = structuredClone(list);
+
+                const parentArea = document.getElementById('categoryregist-area1');
+                for (let i = 1; i <= 3; i++) {
+                    let listElm = createCategoryRegistContent(i);
+                    let inputElm = listElm.querySelector('input');
+                    let className = "";
+                    switch (i) {
+                        case 1:
+                            className = "大分類";
+                            break;
+                        case 2:
+                            className = "中分類";
+                            break;
+                        case 3:
+                            className = "小分類";
+                            break;
+                        default:
+                            break;
+                    }
+                    inputElm.setAttribute('placeholder', className);
+                    parentArea.insertAdjacentElement('beforeend', listElm);
+                }
+
+                window.addEventListener('beforeunload', (e) => {
+                    const check = list.find(value => { return value.state != 0 });
+                    if (check != null) {
+                        const message = '保存されていないデータがあります。ページを離れますか？';
+                        e.preventDefault();
+                        e.returnValue = message;
+                        return message;
+                    }
+                });
+                
+                const header = document.getElementById('categoryregist-header');
+                const classCombo = createComboBox(/*[[${categoryRegistClassList}]]*/, 'classList', 0, changeItemCategoryClassSelected);
+                header.insertAdjacentElement('beforeend', classCombo);
+
+                processingEnd();
+            });
+        </script>
+    </div>
+</body>
+
+</html>

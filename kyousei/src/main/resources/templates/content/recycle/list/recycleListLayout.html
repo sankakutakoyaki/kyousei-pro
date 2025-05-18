@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,viewport-fit=cover">
+
+<head>
+    <meta charset="UTF-8">
+    <link th:href="@{/css/recycle.css}" rel="stylesheet" type="text/css">
+    <style type="text/css">
+        /* .recyclelist-container {
+            min-width: auto;
+            max-width: 90rem;
+            height: 100%;
+            overflow: hidden;
+        }
+        .recyclelist-content {
+            height: 100%;
+            overflow: hidden;
+        } */
+        /* .recyclelist-container>header {
+            position: relative;
+            display: grid;
+            grid-template-columns: 1fr;
+            align-items: center;
+            padding: .5rem 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid var(--br);
+            border-radius: .5rem;
+            padding: 2rem;
+            margin: 0;
+            padding: 1rem;
+        } */
+        .tablelist-container>header {
+            grid-template-columns: 1fr;
+        }
+        .recycleregist-inputs {
+            display: grid;
+            grid-template-columns: 1fr;
+            padding: 1rem;
+            row-gap: .5rem;
+        }
+        /* .recycleregist-inputs>.recycleregist-input:first-child {
+            display: grid;
+            gap: .5rem;
+            grid-template-columns: 8rem auto 1fr 1fr 5rem;
+            align-items: end;
+        }
+        .recycleregist-inputs>.recycleregist-input:nth-child(2) {
+            display: grid;
+            gap: .5rem;
+            grid-template-columns: 10rem 5rem 1fr repeat(4, 5rem);
+            align-items: end;
+        } */
+        .recycleregist-inputs>.recycleregist-input:first-child {
+            display: grid;
+            gap: .5rem;
+            grid-template-columns: 12rem 5rem repeat(3, 5rem) 1fr;
+            align-items: end;
+        }
+        .form-dialog-parts>.multiple {
+            display: grid;
+            gap: .5rem;
+            grid-template-columns: 5rem 1fr;
+        }
+        .form-dialog-parts>.between {
+            display: grid;
+            gap: .5rem;
+            grid-template-columns: 1fr 2rem 1fr;
+        }
+        .form-dialog-parts>.search {
+            display: grid;
+            gap: .5rem;
+            grid-template-columns: 1fr 3rem;
+        }
+        .form-dialog-parts>.between>span {
+            align-self: center;
+            justify-self: center;
+        }
+        .form-dialog-parts>div[name="fixcomp"] {
+            display: flex;
+        }
+        input[name="fixcomp-chk"] {
+            margin-left: 2rem;
+            vertical-align: middle;
+        }
+        .tablelist-container.recycle {
+            max-width: 90rem;
+        }
+        .tablelist-container.recycle tr {
+            grid-template-columns: 3rem 5rem 11rem 1fr 1fr 1fr repeat(3, 7rem) 3rem;
+        }
+        .dialog-content[name="recycle-input-area"] {
+            width: 40rem;
+        }
+        .sidebar-list.search ul label {
+            padding-left: 2rem;
+        }
+        #tablelist tr>td>span[data-statestr="使用済"]:before {
+            content: attr(data-statestr);
+            color: red;
+        }
+        #tablelist tr>td>span[data-statestr="引渡済"]:before {
+            content: attr(data-statestr);
+            color:goldenrod;
+        }
+        #tablelist tr>td>span[data-statestr="発送済"]:before {
+            content: attr(data-statestr);
+            color:darkolivegreen;
+        }
+
+        @media screen and (max-width:1240px) {
+            .recyclelist-container {
+                min-width: auto;
+                /* min-width: 50rem; */
+            }
+            .tablelist-container.recycle tr {
+                grid-template-columns: 3rem 5rem 12rem minmax(12rem, 1fr) 7rem 6rem 3rem;
+                grid-template-rows: 1fr 1fr;
+                /* grid-template-columns: 3rem 5rem 11rem 1fr 1fr 1fr repeat(3, 5rem) 3rem; */
+            }
+            /* .tablelist-container.recycle tr:first-child {
+                height: 6rem;
+            } */
+            .tablelist-container.recycle tr th {
+                font-weight: normal;
+                font-size: .8rem;
+            }
+            .tablelist-container.recycle tr th:nth-child(1),
+            .tablelist-container.recycle tr td[name="chk-cell"] {
+                grid-column: 1 / 2;
+                grid-row: 1 / 3;
+            }
+            .tablelist-container.recycle tr th:nth-child(2),
+            .tablelist-container.recycle tr td:nth-child(2) {
+                grid-column: 2 / 3;
+                grid-row: 1 / 3;
+            }
+            .tablelist-container.recycle tr th:nth-child(3),
+            .tablelist-container.recycle tr td[name="recycle-number"] {
+                grid-column: 3 / 4;
+                grid-row: 1 / 2;
+                align-self: end;
+            }
+            .tablelist-container.recycle tr th:nth-child(4),
+            .tablelist-container.recycle tr td[name="recycle-class"] {
+                grid-column: 4 / 5;
+                grid-row: 1 / 2;
+                align-self: end;
+            }
+            .tablelist-container.recycle tr th:nth-child(5),
+            .tablelist-container.recycle tr td[name="recycle-maker"] {
+                grid-column: 4 / 5;
+                grid-row: 2 / 3;
+                align-self: start;
+            }
+            .tablelist-container.recycle tr th:nth-child(6),
+            .tablelist-container.recycle tr td[name="recycle-shipper"] {
+                grid-column: 3 / 4;
+                grid-row: 2 / 3;
+                align-self: start;
+            }
+            .tablelist-container.recycle tr th:nth-child(7),
+            .tablelist-container.recycle tr td[name="recycle-usedate"] {
+                grid-column: 5 / 6;
+                grid-row: 1 / 2;
+                align-self: end;
+            }
+            .tablelist-container.recycle tr th:nth-child(8),
+            .tablelist-container.recycle tr td[name="recycle-deliverydate"] {
+                grid-column: 5 / 6;
+                grid-row: 2 / 3;
+                align-self: start;
+            }
+            .tablelist-container.recycle tr th:nth-child(9),
+            .tablelist-container.recycle tr td[name="recycle-shippingdate"] {
+                grid-column: 6 / 7;
+                grid-row: 1 / 2;
+                align-self: end;
+            }
+        }
+
+        @media screen and (max-width:560px) {
+            .tablelist-container.recycle {
+                min-width: 100%;
+                max-width: 100%;
+            }
+            /* .recyclelist-container {
+                width: 100%;
+                overflow-x: hidden;
+            } */
+            /* .tablelist-container header {
+                padding: 0 1rem;
+            } */
+            .recycleregist-inputs {
+                padding: 0 1rem 1rem 1rem;
+            }
+            .recycleregist-inputs>.recycleregist-input:first-child {
+                /* padding: 0 1rem; */
+                grid-template-columns: 1fr;
+            }
+            .tablelist-container header {
+                padding: 0 1rem;
+            }
+            /* .recycleregist-inputs>.recycleregist-input {
+                grid-template-columns: 1fr;
+            } */
+            .breadcrumb {
+                margin-left: 1rem;
+            }
+            .tablelist-container>main {
+                border-top: 3px solid var(--line);
+            }
+            .tablelist-container.recycle tr {
+                padding: .5rem 2rem;
+            }
+            /* .tablelist-container.recycle tr[name="tablelist-header"]+tr[name="data-row"] {
+                border-top: 1px solid var(--line);
+                border-image: linear-gradient(to right, transparent 5%, lightgrey 5%, lightgrey 95%, transparent 95%) 1;
+            } */
+            .tablelist-container.recycle tr td[name="recycle-number"] {
+                font-size: 120%;
+                font-weight: bold;
+                color: var(--theme-blue);
+            }
+            .recycleregist-inputs>.recycleregist-input input[name="recycle-number"] {
+                padding: 0 3.5rem 0 .8rem;
+            }
+            /* .recycleregist-input div[name="camera-btn"] {
+                position: absolute;
+                right: 2rem;
+                top: 1.9rem;
+                width: 3rem;
+            } */
+        }
+    </style>
+</head>
+
+<body>
+    <!-- <div th:replace="~{fragment/main::main-fragment-nosidebar}"></div> -->
+    <div th:replace="~{fragment/main::main-fragment}"></div>
+
+    <script th:src="@{/js/default.js}"></script>
+    <script th:src="@{/js/dialog.js}"></script>
+    <script th:src="@{/js/list.js}"></script>
+    <script th:src="@{/js/check.js}"></script>
+    <script th:src="@{/js/time.js}"></script>
+    <script th:src="@{/js/recycle.js}"></script>
+    <script th:src="@{/js/getinfo.js}"></script>
+    <script th:src="@{/js/sidebar.js}"></script>
+    <script th:src="@{/js/combo.js}"></script>
+    <script type="text/javascript" src="https://serratus.github.io/quaggaJS/examples/js/quagga.min.js"></script>
+    <script type="text/JavaScript" th:inline="JavaScript">
+        const updateStateCode = /*[[${updateStateCode}]]*/;
+        const deleteStateCode = /*[[${deleteStateCode}]]*/;
+        const inputStateCode = /*[[${inputStateCode}]]*/;
+        const useStateCode = /*[[${useStateCode}]]*/;
+        const deliveryStateCode = /*[[${deliveryStateCode}]]*/;
+        const forwardStateCode = /*[[${forwardStateCode}]]*/;
+        const token = /*[[${_csrf.token}]]*/;
+        const makerlist = /*[[${makerlist}]]*/;
+        const classlist = /*[[${classlist}]]*/;
+        const pricelist = /*[[${pricelist}]]*/;
+        const sqlformdata = /*[[${sqlformdata}]]*/;
+        let list = /*[[${list}]]*/;
+        const categoryId = /*[[${categoryid}]]*/;
+        const registBtn = document.querySelector('[name="add-btn"]');
+        const csvBtn = document.querySelector('[name="csv-btn"]');
+        const deleteBtn = document.querySelector('[name="delete-btn"]');
+        const updateBtn = document.querySelector('[name="update-btn"]');
+        
+// ----------------------------------------------------------------------------------------------------------------------------------
+
+            function createRecyleTableListHeader() {
+                const tbl = document.getElementById('tablelist');
+                const names = ['状態', 'お問合せ管理票番号', '品目', '略称', '小売業者', '使用日', '引渡日', '発送日'];
+                if (tbl != null) {
+                    const newRow = tbl.insertRow();
+                    newRow.setAttribute('id', 'row0');
+                    newRow.setAttribute('name', 'tablelist-header');
+                    // 選択用チェックボックス
+                    const chkCell = document.createElement('th');
+                    chkCell.setAttribute('name', 'chk-cell');
+                    chkCell.onclick = function () { 
+                        // const result = clickAllCheckBtn(this);
+                        let result = isAnyOneChecked(tbl);
+                        csvBtn.disabled = !result;
+                        deleteBtn.disabled = !result;
+                        updateBtn.disabled = !result;
+                    }
+                    chkCell.innerHTML = '<input id="all-chk-btn" class="normal-chk" type="checkbox" onclick="clickAllCheckBtn(this)">';
+                    // chkCell.innerHTML = '<input id="all-chk-btn" class="normal-chk" type="checkbox">';
+                    newRow.insertAdjacentElement('beforeend', chkCell);
+                    names.forEach(function (name) {
+                        let cell = document.createElement('th');
+                        cell.textContent = name;
+                        newRow.insertAdjacentElement('beforeend', cell);
+                    });
+                }
+            }
+
+            function createRecyleTableListContent(item) {
+                const tbl = document.getElementById('tablelist');
+                let newRow = tbl.insertRow();
+                    newRow.setAttribute('id', 'row' + item.recycle_id);
+                    newRow.setAttribute('name', 'data-row');
+                    // 選択用チェックボックス
+                    let chk = newRow.insertCell();
+                    chk.setAttribute('name', 'chk-cell');
+                    chk.onclick = function () { 
+                        clickCheckBtn(item.recycle_id, this);
+                        let result = isAnyOneChecked(tbl);
+                        csvBtn.disabled = !result;
+                        deleteBtn.disabled = !result;
+                        updateBtn.disabled = !result;
+                    }
+                    chk.innerHTML = '<input id="chk' + item.recycle_id + '" class="normal-chk pc-style" name="chk-box" type="checkbox" value="' + item.recycle_id + '">';
+                    // 使用状況
+                    let stateCell = newRow.insertCell();
+                    // stateCell.setAttribute('name', 'recycle-state-str');
+                    // stateCell.innerHTML += '<span>' + item.recycle_state_str + '</span>';
+                    // stateCell.setAttribute('style', 'text-align:center')
+                    stateCell.innerHTML += '<span data-statestr="' + item.recycle_state_str + '"></span>';
+                    // リサイクル券番号
+                    let numberCell = newRow.insertCell();
+                    numberCell.setAttribute('name', 'recycle-number');
+                    numberCell.innerHTML += '<span>' + item.recycle_number + '</span>';
+                    // 品目
+                    let classCell = newRow.insertCell();
+                    classCell.setAttribute('name', 'recycle-class');
+                    classCell.innerHTML += '<span>' + item.recycle_class_name + '</span>';
+                    // メーカー
+                    let makerCell = newRow.insertCell();
+                    makerCell.setAttribute('name', 'recycle-maker');
+                    makerCell.innerHTML += '<span>' + item.recycle_maker_name + '</span>';
+                    // 小売業者等名
+                    let shipperCell = newRow.insertCell();
+                    shipperCell.setAttribute('name', 'recycle-shipper');
+                    let shipper = item.recycle_company_name;
+                    if (shipper != null && shipper != "") {
+                        if (item.recycle_office_name != null && item.recycle_office_name != "") {
+                            shipper += " " + item.recycle_office_name;
+                        }
+                    } else {
+                        shipper = "-----"
+                    }
+                    shipperCell.innerHTML += '<span>' + shipper + '</span>';
+                    // 使用日
+                    let usedateCell = newRow.insertCell();
+                    usedateCell.setAttribute('name', 'recycle-usedate');
+                    let usedate = item.recycle_usedate == "9999-12-31" ? "" : item.recycle_usedate;
+                    usedateCell.innerHTML += '<span>' + usedate + '</span>';
+                    // 引渡日
+                    let deliverydateCell = newRow.insertCell();
+                    deliverydateCell.setAttribute('name', 'recycle-deliverydate');
+                    let deliverydate = item.recycle_deliverydate == "9999-12-31" ? "" : item.recycle_deliverydate;
+                    deliverydateCell.innerHTML += '<span>' + deliverydate + '</span>';
+                    // 発送日
+                    let shippingdateCell = newRow.insertCell();
+                    shippingdateCell.setAttribute('name', 'recycle-shippingdate');
+                    let shippingdate = item.recycle_shippingdate == "9999-12-31" ? "" : item.recycle_shippingdate;
+                    shippingdateCell.innerHTML += '<span>' + shippingdate + '</span>';
+            }
+
+            // function execRecycleNumberInputChanged(e) {
+            //     if (e.target.value == "") return;
+
+            //     if(e.key === 'Enter'){
+            //         e.preventDefault();
+            //         const nextBlock = document.querySelector('[name="number-search-btn"]');
+            //         if (nextBlock != null) nextBlock.focus();
+            //     }
+            // }
+        function execRecycleNumberInputChanged(e) {
+            if (e.target.value == "") return;
+
+            if(e.key === 'Enter'){
+                e.preventDefault();
+                afterRecyleNumberInputChanged();
+                // const nextBlock = document.querySelector('[name="regist-btn"]');
+                // if (nextBlock != null) {
+                //     nextBlock.focus(); // 移動させないと番号チェックしないため
+                //     const number = document.querySelector("[name='recycle-number']");
+                //     // const result = await checkNumber(number);
+                //     if (number.value != "") {
+                //         nextBlock.click();
+                //     } else {
+                //         number.focus();
+                //     }
+                // }
+            }
+        }
+
+        function afterRecyleNumberInputChanged() {
+            const nextBlock = document.querySelector('[name="number-search-btn"]');
+            const number = document.querySelector("[name='recycle-number']");
+            if (nextBlock != null && number != null) {
+                checkRecycleNumber(number);
+                // number.focus();
+                // nextBlock.focus(); // 移動させないと番号チェックしないため
+                if (number.value != "") {
+                    nextBlock.click();
+                } else {
+                    number.focus();
+                }
+            }
+        }
+
+            // メーカーコード入力時の処理
+            function execRecycleMakerInputChanged(e) {
+                if (e.target.value == "") return;
+
+                if(e.key === 'Enter'){
+                    const area = e.target.closest('[name="recycle-input-area"]');
+                    if (area == null) return;
+                    e.preventDefault();
+                    const nextBlock = area.querySelector('[name="recycle_usedate"]');
+                    if (nextBlock != null) nextBlock.focus();
+	            }
+            }
+
+            // メーカーコードからフォーカス移動時の処理
+            function execRecycleMakerInputBlur(e) {
+                if (e.target.value == "") return;
+                checkRecycleMakerInput(e);
+            }
+
+            function checkRecycleMakerInput(e) {
+                const parent = e.target.closest('.form-dialog-parts');
+                const name = parent.querySelector('[name="recycle-maker-name"]');
+                if (name == null) return;
+                if (makerlist == null || e.target.value.length != 3 || isNaN(e.target.value) == true) {
+                    e.target.value = "";
+                    name.value = "";
+                    return;
+                }
+                const maker = makerlist.find(value => { return value.recycle_maker_code == e.target.value});
+                if (maker != null) {
+                    name.value = maker.recycle_maker_name;
+                    execRecyclePriceInput(e);
+                } else {
+                    e.target.value = "";
+                    name.value = "";
+                }
+            }
+
+            // 品目コード入力時の処理
+            function execRecycleClassInputChanged(e) {                
+                if (e.target.value == "") return;
+
+                if(e.key === 'Enter'){
+                    const area = e.target.closest('[name="recycle-input-area"]');
+                    if (area == null) return;
+                    e.preventDefault();
+                    const nextBlock = area.querySelector('[name="recycle-maker-code"]');
+                    if (nextBlock != null) nextBlock.focus();
+	            }
+            }
+
+            function execRecycleClassInputBlur(e) {                
+                if (e.target.value == "") return;
+                checkRecycleClassInput(e);
+            }
+
+            function checkRecycleClassInput(e) {
+                const parent = e.target.closest('.form-dialog-parts');
+                const name = parent.querySelector('[name="recycle-class-name"]');
+                if (name == null) return;
+                if (classlist == null || e.target.value.length != 2 || isNaN(e.target.value) == true) {
+                    e.target.value = "";
+                    name.value = "";
+                    return;
+                }
+                const item = classlist.find(value => { return value.recycle_class_code == e.target.value});
+                if (item != null) {
+                    name.value = item.recycle_class_name;
+                    execRecyclePriceInput(e);
+                } else {
+                    e.target.value = "";
+                    name.value = "";
+                }
+            }
+
+            async function execUpdateRecycleList() {
+                const parent = document.querySelector(".tablelist-container");
+                if (parent == null) return;
+                const ids = getAllSelectedCheckboxes(parent);
+                updatelist = [];                
+                if (ids.length > 0) {
+                    ids.forEach(function (item) {
+                        let elm = list.find(function(value) { return value.recycle_id == item.id})
+                        if (elm != null) updatelist.push(elm);
+                    });
+                }
+                
+                updateitem = {};
+                // 小売業者
+                const companyId = updatelist.filter((element, index, self) => self.findIndex(
+                    (dataElement) => dataElement.recycle_company_id == element.recycle_company_id ) == index
+                );
+                updateitem.recycle_company_id = companyId.length == 1 ? companyId[0].recycle_company_id: -1;
+
+                if (updateitem.recycle_company_id == -1) {
+                    updateitem.recycle_office_id = -1;
+                } else {
+                    const officeId = updatelist.filter((element, index, self) => self.findIndex(
+                        (dataElement) => dataElement.recycle_office_id == element.recycle_office_id ) == index
+                    );
+                    updateitem.recycle_office_id = officeId.length == 1 ? officeId[0].recycle_office_id: -1;
+                }
+
+                // 使用日
+                const usedate = updatelist.filter((element, index, self) => self.findIndex(
+                    (dataElement) => dataElement.recycle_usedate == element.recycle_usedate ) == index
+                );
+                updateitem.recycle_usedate = usedate.length == 1 ? usedate[0].recycle_usedate: "";
+                if (updateitem.recycle_usedate == "9999-12-31") updateitem.recycle_usedate = "";
+
+                // 引渡日
+                const deliverydate = updatelist.filter((element, index, self) => self.findIndex(
+                    (dataElement) => dataElement.recycle_deliverydate == element.recycle_deliverydate ) == index
+                );
+                updateitem.recycle_deliverydate = deliverydate.length == 1 ? deliverydate[0].recycle_deliverydate: "";
+                if (updateitem.recycle_deliverydate == "9999-12-31") updateitem.recycle_deliverydate = "";
+
+                // 発送日
+                const shippingdate = updatelist.filter((element, index, self) => self.findIndex(
+                    (dataElement) => dataElement.recycle_shippingdate == element.recycle_shippingdate ) == index
+                );
+                updateitem.recycle_shippingdate = shippingdate.length == 1 ? shippingdate[0].recycle_shippingdate: "";
+                if (updateitem.recycle_shippingdate == "9999-12-31") updateitem.recycle_shippingdate = "";
+
+                // 品目コード
+                const classCode = updatelist.filter((element, index, self) => self.findIndex(
+                    (dataElement) => dataElement.recycle_class_code == element.recycle_class_code ) == index
+                );
+                updateitem.recycle_class_code = classCode.length == 1 ? classCode[0].recycle_class_code: -1;
+
+                // 品目名
+                const className = updatelist.filter((element, index, self) => self.findIndex(
+                    (dataElement) => dataElement.recycle_class_name == element.recycle_class_name ) == index
+                );
+                updateitem.recycle_class_name = className.length == 1 ? className[0].recycle_class_name: "";
+
+                // メーカーコード
+                const makerCode = updatelist.filter((element, index, self) => self.findIndex(
+                    (dataElement) => dataElement.recycle_maker_code == element.recycle_maker_code ) == index
+                );
+                updateitem.recycle_maker_code = makerCode.length == 1 ? makerCode[0].recycle_maker_code: -1;
+
+                // メーカー名
+                const makerName = updatelist.filter((element, index, self) => self.findIndex(
+                    (dataElement) => dataElement.recycle_maker_name == element.recycle_maker_name ) == index
+                );
+                updateitem.recycle_maker_name = makerName.length == 1 ? makerName[0].recycle_maker_name: "";
+
+                // 金額（税込）
+                const price = updatelist.filter((element, index, self) => self.findIndex(
+                    (dataElement) => dataElement.recycle_price == element.recycle_price ) == index
+                );
+                updateitem.recycle_price = price.length == 1 ? price[0].recycle_price: -1;
+
+                // 金額（税別）
+                const exTax = updatelist.filter((element, index, self) => self.findIndex(
+                    (dataElement) => dataElement.recycle_ex_tax == element.recycle_ex_tax ) == index
+                );
+                updateitem.recycle_ex_tax = exTax.length == 1 ? exTax[0].recycle_ex_tax: -1;
+
+                createFormDialog(updateitem, "修正", "修正");
+                const area = document.getElementById('recycle-form');
+                const selectArea = area.querySelector('[name="recycle-company"]');
+                if (selectArea == null) return;                
+                // selectArea.insertAdjacentHTML('beforeend', '<option value="0"></option>');
+                // createRecyleComboBox(selectArea, /*[[${shipperlist}]]*/);
+                createSimpleComboBoxWithTop(selectArea, /*[[${shipperlist}]]*/);
+
+                const company = area.querySelector('[name="recycle-company"]');
+                if (company == null) return;
+                if (updateitem.recycle_company_id > 0) company.value = updateitem.recycle_company_id;
+
+                const office = area.querySelector('[name="recycle-office"]');
+                if (office == null) return;                
+                await createShipperOffice(office);
+                office.value = updateitem.recycle_office_id;
+            }
+
+            function execUpdateFormData() {
+                createConfirmDialog("修正しますか？この操作は取り消せません", "確認", "blue", "修正", "updateFormData()");
+            }
+
+            // 修正を保存する
+            async function updateFormData() {
+                closeDialog('dialog-area');
+                startProcessing();
+
+                const updatelist = getSelectedItems();
+                const form = document.getElementById('recycle-form');
+                const formData = new FormData(form);
+                const company_id = formData.get('recycle-company') ?? -1;
+                const office_id = formData.get('recycle-office') ?? -1;
+                const maker_code = formData.get('recycle-maker-code') ?? -1;
+                const maker_name = formData.get('recycle-maker-name') ?? "";
+                const class_code = formData.get('recycle-class-code') ?? -1;
+                const class_name = formData.get('recycle-class-name') ?? "";
+                const usedate = formData.get('recycle-usedate') ?? "";
+                const deliverydate = formData.get('recycle-deliverydate') ?? "";
+                const shippingdate = formData.get('recycle-shippingdate') ?? "";
+                const price = formData.get('recycle-price') ?? -1;
+                const ex_tax = formData.get('recycle-ex-tax') ?? -1;
+
+                const company = form.querySelector('select[name="recycle-company"]');
+                const office = form.querySelector('select[name="recycle-office"]');
+
+                if (Number(company_id) > 0) {
+                    updatelist.forEach(value => {
+                        value.recycle_company_id = Number(company_id);
+                    });
+                };
+                if (Number(office_id) > 0) {
+                    updatelist.forEach(value => {
+                        value.recycle_office_id = Number(office_id);
+                    });
+                };
+                if (Number(maker_code) > 0) {
+                    updatelist.forEach(value => {
+                        value.recycle_maker_code = Number(maker_code);
+                    });
+                };
+                if (maker_name != "") {
+                    updatelist.forEach(value => {
+                        value.recycle_maker_name = maker_name;
+                    });
+                };
+                if (Number(class_code) > 0) {
+                    updatelist.forEach(value => {
+                        value.recycle_class_code = Number(class_code);
+                    });
+                };
+                if (class_name != "") {
+                    updatelist.forEach(value => {
+                        value.recycle_class_name = class_name;
+                    });
+                };
+                if (usedate != "") {
+                    updatelist.forEach(value => {
+                        value.recycle_usedate = usedate;
+                    });
+                };
+                if (deliverydate != "") {
+                    updatelist.forEach(value => {
+                        value.recycle_deliverydate = deliverydate;
+                    });
+                };
+                if (shippingdate != "") {
+                    updatelist.forEach(value => {
+                        value.recycle_shippingdate = shippingdate;
+                    });
+                };
+                if (Number(price) > 0) {
+                    updatelist.forEach(value => {
+                        value.recycle_price = Number(price);
+                    });
+                };
+                if (Number(ex_tax) > 0) {
+                    updatelist.forEach(value => {
+                        value.recycle_ex_tax = Number(ex_tax);
+                    });
+                };
+
+                updatelist.forEach(value => {
+                    value.state = updateStateCode;
+                });
+
+                closeDialog('form-dialog-area');
+
+                const check = updatelist.find(value => { return value.state != 0 });
+                if (check != null) {
+                    const url = "/recycle/list/update";
+                    const data = JSON.stringify(updatelist);
+                    const contentType = 'application/json';
+                    const resultResponse = await postFetch(url, data, token, contentType);
+                    const result = await resultResponse.json();
+
+                    if (result) {
+                        updateSuccessDialog();
+                        execSearchRecycleList();
+                        // execResetRecycleList();
+                    } else {
+                        failureDialog();
+                    }
+                }
+
+                processingEnd();
+            }
+
+            function getFormDialogContent(item) {
+                const elmContent = document.createElement('form');
+                elmContent.classList.add('dialog-content');
+                elmContent.setAttribute('name' ,'recycle-input-area');
+                elmContent.setAttribute('id', 'recycle-form');
+                elmContent.setAttribute('data-id', item.recycle_id);
+
+                // 小売業者
+                const shipper = document.createElement('div');
+                shipper.classList.add('form-dialog-parts', 'cp6');
+                const shipperLabel = document.createElement('label');
+                shipperLabel.textContent = "小売業者"
+                const shipperSelect = document.createElement('select');
+                shipperSelect.setAttribute('name', 'recycle-company');
+                shipperSelect.classList.add('normal-select');
+                shipperSelect.onchange = function() { createShipperOffice(this) };
+                shipperSelect.value = item.recycle_company_id;
+                shipper.insertAdjacentElement('beforeend', shipperLabel);
+                shipper.insertAdjacentElement('beforeend', shipperSelect);
+                elmContent.insertAdjacentElement('beforeend', shipper);
+
+                // 支店
+                const office = document.createElement('div');
+                office.classList.add('form-dialog-parts', 'cp6', 'ct7');
+                const officeLabel = document.createElement('label');
+                officeLabel.textContent = "支店";
+                const officeSelect = document.createElement('select');
+                officeSelect.setAttribute('name', 'recycle-office');
+                officeSelect.classList.add('normal-select');
+                officeSelect.value = item.recycle_office_id;
+                office.insertAdjacentElement('beforeend', officeLabel);
+                office.insertAdjacentElement('beforeend', officeSelect);
+                elmContent.insertAdjacentElement('beforeend', office);
+
+                // 品目
+                const recycleClass = document.createElement('div');
+                recycleClass.classList.add('form-dialog-parts', 'separate', 'cp6');
+                const recycleClassLabel = document.createElement('label');
+                recycleClassLabel.classList.add('cp12');
+                recycleClassLabel.textContent = "品目";
+                const classCodeInput = document.createElement('input');
+                classCodeInput.setAttribute('name', 'recycle-class-code');
+                classCodeInput.classList.add('normal-input', 'cp3');
+                if (item.recycle_class_code != -1) classCodeInput.value = item.recycle_class_code;
+                classCodeInput.onfocus = function () { this.select(); }
+                classCodeInput.setAttribute('inputmode', 'numeric');
+                classCodeInput.setAttribute('pattern', '\d*');
+                classCodeInput.setAttribute('maxlength', '2');
+                classCodeInput.addEventListener('keydown', function (e) { execRecycleClassInputChanged(e); });
+                classCodeInput.addEventListener('blur', function (e) { execRecycleClassInputBlur(e); });
+                const classNameInput = document.createElement('input');
+                classNameInput.setAttribute('name', 'recycle-class-name');
+                classNameInput.classList.add('normal-input', 'cp9', 'ct4');
+                classNameInput.value = item.recycle_class_name;
+                classNameInput.readOnly = true;
+                recycleClass.insertAdjacentElement('beforeend', recycleClassLabel);
+                recycleClass.insertAdjacentElement('beforeend', classCodeInput);
+                recycleClass.insertAdjacentElement('beforeend', classNameInput);
+                elmContent.insertAdjacentElement('beforeend', recycleClass);
+
+                // メーカー
+                const recycleMaker = document.createElement('div');
+                recycleMaker.classList.add('form-dialog-parts', 'separate', 'cp6', 'ct7');
+                const recycleMakerLabel = document.createElement('label');
+                recycleMakerLabel.classList.add('cp12');
+                recycleMakerLabel.textContent = "略称";
+                const makerCodeInput = document.createElement('input');
+                makerCodeInput.setAttribute('name', 'recycle-maker-code');
+                makerCodeInput.classList.add('normal-input', 'cp3');
+                if (item.recycle_maker_code != -1) makerCodeInput.value = item.recycle_maker_code;
+                makerCodeInput.onfocus = function () { this.select(); }
+                makerCodeInput.setAttribute('inputmode', 'numeric');
+                makerCodeInput.setAttribute('pattern', '\d*');
+                makerCodeInput.setAttribute('maxlength', '3');
+                makerCodeInput.addEventListener('keydown', function (e) { execRecycleMakerInputChanged(e); });
+                makerCodeInput.addEventListener('blur', function (e) { execRecycleMakerInputBlur(e); });
+                const makerNameInput = document.createElement('input');
+                makerNameInput.setAttribute('name', 'recycle-maker-name');
+                makerNameInput.value = item.recycle_maker_name;
+                makerNameInput.classList.add('normal-input', 'cp9', 'ct4');
+                makerNameInput.readOnly = true;
+                recycleMaker.insertAdjacentElement('beforeend', recycleMakerLabel);
+                recycleMaker.insertAdjacentElement('beforeend', makerCodeInput);
+                recycleMaker.insertAdjacentElement('beforeend', makerNameInput);
+                elmContent.insertAdjacentElement('beforeend', recycleMaker);
+
+                // 使用日
+                const usedate = document.createElement('div');
+                usedate.classList.add('form-dialog-parts', 'cp4');
+                const usedateLabel = document.createElement('label');
+                usedateLabel.textContent = "使用日";
+                const usedateInput = document.createElement('input');
+                usedateInput.setAttribute('name', 'recycle-usedate');
+                usedateInput.setAttribute('type', 'date');
+                usedateInput.classList.add('normal-input');                
+                usedateInput.onfocus = function () { this.select(); }
+                usedateInput.value = item.recycle_usedate;
+                usedate.insertAdjacentElement('beforeend', usedateLabel);
+                usedate.insertAdjacentElement('beforeend', usedateInput);
+                elmContent.insertAdjacentElement('beforeend', usedate);
+
+                // 引渡日
+                const deliverydate = document.createElement('div');
+                deliverydate.classList.add('form-dialog-parts', 'cp4', 'ct5');
+                const deliverydateLabel = document.createElement('label');
+                deliverydateLabel.textContent = "引渡日";
+                const deliverydateInput = document.createElement('input');
+                deliverydateInput.setAttribute('name', 'recycle-deliverydate');
+                deliverydateInput.setAttribute('type', 'date');
+                deliverydateInput.classList.add('normal-input');                
+                deliverydateInput.onfocus = function () { this.select(); }
+                deliverydateInput.value = item.recycle_deliverydate;
+                deliverydate.insertAdjacentElement('beforeend', deliverydateLabel);
+                deliverydate.insertAdjacentElement('beforeend', deliverydateInput);
+                elmContent.insertAdjacentElement('beforeend', deliverydate);
+
+                // 発送日
+                const shippingdate = document.createElement('div');
+                shippingdate.classList.add('form-dialog-parts', 'cp4', 'ct9');
+                const shippingdateLabel = document.createElement('label');
+                shippingdateLabel.textContent = "発送日";
+                const shippingdateInput = document.createElement('input');
+                shippingdateInput.setAttribute('name', 'recycle-shippingdate');
+                shippingdateInput.setAttribute('type', 'date');
+                shippingdateInput.classList.add('normal-input');                
+                shippingdateInput.onfocus = function () { this.select(); }
+                shippingdateInput.value = item.recycle_shippingdate;
+                shippingdate.insertAdjacentElement('beforeend', shippingdateLabel);
+                shippingdate.insertAdjacentElement('beforeend', shippingdateInput);
+                elmContent.insertAdjacentElement('beforeend', shippingdate);
+
+                // 料金（税込）
+                const price = document.createElement('div');
+                price.classList.add('form-dialog-parts', 'cp3');
+                const priceLabel = document.createElement('label');
+                priceLabel.textContent = "税込";
+                const priceInput = document.createElement('input');
+                priceInput.setAttribute('name', 'recycle-price');
+                priceInput.classList.add('normal-input');                
+                priceInput.onfocus = function () { this.select(); }
+                if (item.recycle_price != -1) priceInput.value = item.recycle_price;
+                priceInput.setAttribute('inputmode', 'numeric');
+                priceInput.setAttribute('pattern', '\d*');
+                price.insertAdjacentElement('beforeend', priceLabel);
+                price.insertAdjacentElement('beforeend', priceInput);
+                elmContent.insertAdjacentElement('beforeend', price);
+
+                // 料金（税別）
+                const tax = document.createElement('div');
+                tax.classList.add('form-dialog-parts', 'cp3', 'ct4');
+                const taxLabel = document.createElement('label');
+                taxLabel.textContent = "税抜";
+                const taxInput = document.createElement('input');
+                taxInput.setAttribute('name', 'recycle-ex-tax');
+                taxInput.classList.add('normal-input');                
+                taxInput.onfocus = function () { this.select(); }
+                if (item.recycle_ex_tax != -1) taxInput.value = item.recycle_ex_tax;
+                taxInput.setAttribute('inputmode', 'numeric');
+                taxInput.setAttribute('pattern', '\d*');
+                tax.insertAdjacentElement('beforeend', taxLabel);
+                tax.insertAdjacentElement('beforeend', taxInput);
+                elmContent.insertAdjacentElement('beforeend', tax);
+
+                return elmContent;
+            }
+
+            function execDeleteRecycleList() {
+                createConfirmDialog("削除しますか？この操作は取り消せません", "確認", "blue", "削除", "deleteRecycleList()");
+            }
+
+            async function deleteRecycleList() {
+                closeDialog('dialog-area');
+                startProcessing();
+
+                const updatelist = getSelectedItems();
+                updatelist.forEach(value => {
+                    value.state = deleteStateCode;
+                });
+
+                // const check = updatelist.find(value => { return value.state == deleteStateCode });
+                // if (check != null) {
+                    const url = "/recycle/delete";
+                    const data = JSON.stringify(updatelist);
+                    const contentType = 'application/json';
+                    const resultResponse = await postFetch(url, data, token, contentType);
+                    const result = await resultResponse.json();
+
+                    if (result) {
+                        removeSuccessDialog();
+                        // execResetRecycleList();
+                        execSearchRecycleList();
+                    } else {
+                        failureDialog();
+                    }
+                // }
+            }
+
+            // function execRecycleNumberInputChanged(e) {
+            //     if (e.target.value == "") return;
+
+            //     if(e.key === 'Enter'){
+            //         e.preventDefault();
+            //         const nextBlock = document.querySelector('[name="number-search-btn"]');
+            //         if (nextBlock != null) nextBlock.focus();
+            //     }
+            // }
+
+            function updateRecycleDisplay() {
+                list.forEach(item => {
+                    if (item.state != deleteStateCode) {
+                        createRecyleTableListContent(item);
+                    }                        
+                });
+                deselectAllCheckBtn("all-chk-btn");
+                csvBtn.disabled = true;
+                deleteBtn.disabled = true;
+                updateBtn.disabled = true;
+                document.getElementById('tablelist').scrollIntoView(false);
+            }
+
+            function createSearchSidebarList() {
+                const area = document.getElementById("sidebar-area");
+                area.setAttribute('name', 'recycle-input-area');
+                area.classList.add('sidebar-list', 'search');
+                const elmUl = document.createElement('ul');
+                const titleElm = document.createElement('p');
+                const titleText = document.createTextNode('検索条件');
+                titleElm.appendChild(titleText);
+                elmUl.insertAdjacentElement('beforeend', titleElm);
+
+                // const dateLabel = document.createElement('li');
+                // dateLabel.insertAdjacentHTML('beforeend', '<label>日付</label>');
+                // elmUl.insertAdjacentElement('beforeend', dateLabel);
+                elmUl.insertAdjacentHTML('beforeend', '<label>日付</label>');
+
+                const dateClass = document.createElement('li');
+                const dateClassElm = document.createElement('select');
+                dateClassElm.setAttribute('name', 'recycle-date-class');
+                dateClassElm.setAttribute('style', 'width:8rem');
+                dateClassElm.classList.add('normal-select');
+                dateClassElm.insertAdjacentHTML('beforeend', '<option value="' + inputStateCode + '">入力日</option>');
+                dateClassElm.insertAdjacentHTML('beforeend', '<option value="' + useStateCode + '">使用日</option>');
+                dateClassElm.insertAdjacentHTML('beforeend', '<option value="' + deliveryStateCode + '">引渡日</option>');
+                dateClassElm.insertAdjacentHTML('beforeend', '<option value="' + forwardStateCode + '">発送日</option>');
+                dateClass.insertAdjacentElement('beforeend', dateClassElm);
+                elmUl.insertAdjacentElement('beforeend', dateClass);
+
+                const start = document.createElement('li');
+                const startElm = document.createElement('div');
+                startElm.insertAdjacentHTML('beforeend', '<input name="recycle-startdate" style="width:10rem; margin-right:1rem" class="normal-input" type="date">');
+                startElm.insertAdjacentHTML('beforeend', '<span>から</span>');
+                start.insertAdjacentElement('beforeend', startElm);
+                elmUl.insertAdjacentElement('beforeend', start);
+
+                const end = document.createElement('li');
+                const endElm = document.createElement('div');
+                endElm.insertAdjacentHTML('beforeend', '<input name="recycle-enddate" style="width:10rem; margin-right:1rem" class="normal-input" type="date">');
+                endElm.insertAdjacentHTML('beforeend', '<span>まで</span>');
+                end.insertAdjacentElement('beforeend', endElm);
+                elmUl.insertAdjacentElement('beforeend', end);
+
+                // const label = document.createElement('li');
+                // const companyLabel = document.createElement('label');
+                // companyLabel.textContent = "小売業者等名";
+                // label.insertAdjacentElement('beforeend', companyLabel);
+                // elmUl.insertAdjacentElement('beforeend', label);
+                elmUl.insertAdjacentHTML('beforeend', '<label>小売業者等名</label>');
+
+                const company = document.createElement('li');
+                const companyElm = document.createElement('select');
+                companyElm.setAttribute('name', 'recycle-company');
+                companyElm.classList.add('normal-select');
+                companyElm.onchange = function () { createShipperOffice(this); };
+                company.insertAdjacentElement('beforeend', companyElm);
+                elmUl.insertAdjacentElement('beforeend', company);
+
+                const office = document.createElement('li');
+                const officeElm = document.createElement('select');
+                officeElm.setAttribute('name', 'recycle-office');
+                officeElm.classList.add('normal-select');
+                office.insertAdjacentElement('beforeend', officeElm);
+                elmUl.insertAdjacentElement('beforeend', office);
+
+                const search = document.createElement('li');
+                search.setAttribute('style', 'display:flex;');
+                const searchBtn = document.createElement('button');
+                searchBtn.setAttribute('name', 'search-btn');
+                searchBtn.setAttribute('style', 'width:5rem; margin-right:.5rem');
+                searchBtn.classList.add('normal-btn', 'ok');
+                searchBtn.onclick = function () { execSearchRecycleList(); }
+                const searchLabel = document.createElement('span');                
+                searchBtn.insertAdjacentElement('beforeend', searchLabel);
+                searchLabel.textContent = "検索";
+                const resetBtn = document.createElement('button');
+                resetBtn.setAttribute('name', 'reset-btn');
+                resetBtn.setAttribute('style', 'width:5rem;');
+                resetBtn.classList.add('normal-btn');
+                resetBtn.onclick = function () { execResetRecycleList(); }
+                const resetLabel = document.createElement('span');
+                resetLabel.textContent = "リセット";
+                resetBtn.insertAdjacentElement('beforeend', resetLabel);
+                search.insertAdjacentElement('beforeend', searchBtn);
+                search.insertAdjacentElement('beforeend', resetBtn);
+                elmUl.insertAdjacentElement('beforeend', search);
+
+                // const usedate = document.createElement('li');
+                // const usedateElm = document.createElement('div');
+                // usedateElm.addEventListener('click', 
+                //     function (e) { 
+                //         const use = e.currentTarget.querySelector('[name="search-usedate"]');
+                //         if (use != null) use.checked = !use.checked;
+                //     }
+                // );
+                // usedateElm.setAttribute('style', 'display:flex; align-items:center;')
+                // usedateElm.insertAdjacentHTML('beforeend', '<input name="search-usedate" style="margin-right:1rem" class="normal-chk" type="checkbox">');
+                // usedateElm.insertAdjacentHTML('beforeend', '<label>使用済み</label>');
+                // usedate.insertAdjacentElement('beforeend', usedateElm);
+                // elmUl.insertAdjacentElement('beforeend', usedate);
+
+                area.insertAdjacentElement('beforeend', elmUl);
+            }
+
+// 初期化時の処理 ------------------------------------------------------------------------------------------------------------------------------------
+            // 読み込み時の処理
+            window.addEventListener("load", () => {
+                createRecyleTableListHeader();
+                updateRecycleDisplay();
+                createSearchSidebarList();
+                
+                // リサイクル券番号入力ボックスでエンターキーが押された時の処理を登録
+                document.querySelector('[name="recycle-number"]').addEventListener('keydown', function (e) { execRecycleNumberInputChanged(e); });
+                // リサイクル券番号入力ボックスのフォーカスが外れた時の処理を登録
+                document.querySelector('[name="recycle-number"]').addEventListener('blur', function (e) { execRecycleNumberInputBlur(e); });
+
+                // document.querySelector('[name="recycle-startdate"]').addEventListener("change", (e) => { checkStartDateChanged(e, "recycle-enddate") });
+                // document.querySelector('[name="recycle-enddate"]').addEventListener("change", (e) => { checkEndDateChanged(e, "recycle-startdate") });
+                document.querySelector('[name="recycle-startdate"]').addEventListener("change", (e) => { checkStartDateChanged(e, "recycle-enddate") });
+                document.querySelector('[name="recycle-enddate"]').addEventListener("change", (e) => { checkEndDateChanged(e, "recycle-startdate") });
+
+                // const company = document.querySelector('[name="search-company"]');
+                const company = document.querySelector('[name="recycle-company"]');
+                // company.insertAdjacentHTML('beforeend', '<option value="0"></option>');
+                // createRecyleComboBox(company, /*[[${shipperlist}]]*/);
+                createSimpleComboBoxWithTop(company, /*[[${shipperlist}]]*/);
+
+                // sv-SEロケールはYYYY-MM-DD形式の日付文字列を戻す
+                const date = new Date().toLocaleDateString('sv-SE');
+                const startdate = document. querySelector('[name="recycle-startdate"]');
+                // const startdate = document. querySelector('[name="recycle-startdate"]');
+                if (startdate != null) startdate.value = date;
+                const enddate = document. querySelector('[name="recycle-enddate"]');
+                // const enddate = document. querySelector('[name="recycle-enddate"]');
+                if (enddate != null) enddate.value = date;
+
+                // 処理が終了したらスピナーを消去する
+                processingEnd();
+
+                
+            });
+
+            // // 端末の傾きを検知する
+            // window.addEventListener("orientationchange", () => {
+            //     // 端末の傾きを絶対値で取得する
+            //     const direction = Math.abs(window.orientation);
+            //     if(direction == 90) {
+            //         // 横向きの処理
+            //         console.log("横");
+            //     } else {
+            //         // 縦向きの処理
+            //         console.log("縦");
+            //         screen.orientation.lock("landscape")
+            //             .then(function() {
+            //                 console.log("画面を横向きにロックしました。");
+            //             })
+            //             .catch(function(error) {
+            //                 console.log("画面のロックに失敗しました。: " + error.message);
+            //             });
+            //     }
+            // });
+
+            // window.addEventListener('beforeunload', (e) => {
+            //     const check = list.find(value => { return value.state != 0 });
+            //     if (check != null) {
+            //         const message = '保存されていないデータがあります。ページを離れますか？';
+            //         e.preventDefault();
+            //         e.returnValue = message;
+            //         return message;
+            //     }
+            // });
+            
+            // // フォーム送信時に確認ダイアログを無効化
+            // document.querySelector('form').addEventListener('submit', function() {
+            //     window.onbeforeunload = null;
+            // });
+        </script>
+    </div>
+</body>
+
+</html>

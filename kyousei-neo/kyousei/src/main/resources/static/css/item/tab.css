@@ -1,0 +1,62 @@
+@charset "UTF-8";
+
+/******************************************************************************************************* 基本設定 tab */
+
+/* .tab {
+    max-width: 800px;
+    margin: 0 auto;
+    margin-top: 120px;
+} */
+/* タブメニュー */
+.tab-menu {
+    display: flex;
+    /* align-items: flex-end; */
+    /* メニューを下揃え&高さを調整 */
+    /* justify-content: center; */
+    min-height: 4rem;
+    /* メニュー切替時にタブがズレないように */
+    padding: 0;
+    margin: 0;
+}
+.tab-menu-item {
+    list-style: none;
+    min-width: 10rem;
+    padding: 1rem;
+    /* メニューに高さを付ける */
+    text-align: center;
+    /* margin-right: 6px; */
+    /* background-color: #cdcdcd; */
+    /* border-top-left-radius: 10px; */
+    /* border-top-right-radius: 10px; */
+    font-weight: bold;
+    user-select: none;
+    cursor: var(--cursor);
+    transition: all .3s;
+    /* アニメーション */
+}
+.tab-menu-item:last-of-type {
+    margin-right: 0px;
+}
+/* is-activeがついている時のスタイル */
+.tab-menu-item.is-active {
+    border-bottom: 5px solid var(--br);
+    /* background-color: var(--row-selected); */
+    /* color: #ffffff; */
+    /* padding: 12px 5px; */
+}
+/* タブパネル */
+.tab-panel {
+    width: 100%;
+    margin-top: .5rem;
+}
+.tab-panel-box {
+    /* min-height: 400px; */
+    /* テキスト量が多くなっても対応できるように */
+    /* padding: 10px 30px; */
+    /* border-radius: 10px; */
+    display: none;
+}
+/* is-showがついている時のスタイル */
+.tab-panel-box.is-show {
+    display: block;
+}

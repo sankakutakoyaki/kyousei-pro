@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{content/index/indexLayout}">
+
+<head>
+    <title>リサイクル</title>
+</head>
+
+<body>
+    <div class="normal-body" layout:fragment="layout-body">
+        <div class="index-btn-container">
+            <div class="index-btn" th:onclick="moveLinkPage('/recycle/list')">
+                <img th:src="@{/icons/note.png}"><span>一覧</span>
+            </div>
+            <div class="index-btn" th:onclick="moveLinkPage('/recycle/regist')">
+                <img th:src="@{/icons/recycle_dust.png}"><span>使用登録</span>
+            </div>
+            <div class="index-btn" th:onclick="moveLinkPage('/recycle/regist/delivery')">
+                <img th:src="@{/icons/good.png}"><span>引渡登録</span>
+            </div>
+            <div class="index-btn" th:onclick="moveLinkPage('/recycle/regist/forward')">
+                <img th:src="@{/icons/recycle_truck.png}"><span>発送登録</span>
+            </div>
+            <div class="index-btn" th:onclick="moveLinkPage('/recycle/regist/loss')">
+                <img th:src="@{/icons/ban.png}"><span>ロス登録</span>
+            </div>
+            <div class="index-btn" th:onclick="moveLinkPage('/recycle/regist/maker')">
+                <img th:src="@{/icons/buillding.png}"><span>メーカー</span>
+            </div>
+            <div class="index-btn" th:onclick="moveLinkPage('/recycle/regist/product')">
+                <img th:src="@{/icons/factory.png}"><span>製造業者</span>
+            </div>
+            <div class="index-btn" th:onclick="moveLinkPage('/recycle/regist/price')">
+                <img th:src="@{/icons/piggy_bank.png}"><span>法定料金</span>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

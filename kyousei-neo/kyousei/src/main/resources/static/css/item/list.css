@@ -1,0 +1,214 @@
+@charset "UTF-8";
+
+/******************************************************************************************************* normal-list */
+
+.normal-list {
+    display: grid;
+    width: 100%;
+    overflow-y: auto;
+    box-shadow: none;
+}
+.normal-list>ul {
+    padding: 0;
+}
+.normal-list>ul>p {
+    user-select: none;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 1.2rem;
+    padding: .5rem 2rem;
+    border-bottom: 1px solid var(--br);
+}
+.normal-list>ul>li {
+    display: grid;
+    align-items: center;
+    user-select: none;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    padding: 0 2.5rem;
+    height: 3rem;
+    cursor: pointer;
+    border-radius: .4rem;
+}
+
+/* サイドバー */
+/* .normal-list.sidebar {
+    padding: 1rem 0;
+} */
+.normal-list.sidebar>ul {
+    display: grid;
+    margin: 0;
+}
+.normal-list.sidebar>ul>li {
+    display: flex;
+    margin-bottom: .2rem;
+    padding: 1rem 2rem;
+    height: 3rem;
+    border-radius: .4rem;
+}
+.normal-list.index.sidebar>ul>li {
+    height: 4rem;
+    margin-bottom: 0;
+}
+.normal-list.sidebar>ul>li>img {
+    width: 2rem;
+    margin: 0 1rem;
+}
+.normal-list.sidebar p:first-child {
+    font-size: 1.5rem;
+    margin-left: 2rem;
+}
+.normal-list>ul>li.selected {
+    background-color: var(--row-selected);
+}
+
+/******************************************************************************************************* アコーディオン */
+
+.accordion {
+    width: 100%;
+}
+.accordion summary {
+    display: flex;
+    align-items: center;
+    position: relative;
+    color: #333333;
+    cursor: var(--cursor);
+    border-radius: .5rem;
+    user-select: none;
+    padding: 1rem 0;
+}
+.accordion.sidebar summary {
+    padding: 1rem 2rem;
+}
+.accordion summary::-webkit-details-marker {
+    display: none;
+}
+.accordion summary.mark::before {
+    transform: translateY(0%) rotate(-45deg);
+    width: .5rem;
+    height: .5rem;
+    margin-right: 1rem;
+    border-bottom: 3px solid #333333b3;
+    border-right: 3px solid #333333b3;
+    content: '';
+    transition: transform .3s;
+}
+.accordion summary.single::before {
+    border: 0;
+}
+.accordion summary.single {
+    font-weight: bold;
+    /* border: 2px solid var(--br); */
+}
+.accordion summary.single:hover {
+    cursor:default ;
+}
+.accordion[open] summary.mark::before {
+    /* transform: rotate(45deg); */
+    transform: translateY(-25%) rotate(45deg);
+}
+/* .accordion[open] summary {
+    background-color: var(--accordion-selected);
+} */
+.accordion[open] summary.single {
+    background-color: transparent;
+}
+.accordion p {
+    display: flex;
+    transform: translateY(-10px);
+    opacity: 0;
+    margin: 0 0 0 2rem;
+    padding: 1rem 1.5rem;
+    color: #333333;
+    /* transition: transform .5s, opacity .5s; */
+    align-items: center;
+    cursor: var(--cursor);
+    border-radius: .5rem;
+    user-select: none;
+}
+/* .accordion[open] summary {
+    border-bottom: 2px solid var(--line);
+    border-image: linear-gradient(to right, transparent 10%, lightgrey 10%, lightgrey 100%, transparent 100%) 1;
+    margin-bottom: .5rem;
+} */
+/* .accordion[open] p:first-of-type {
+    border-top: 2px solid var(--line);
+    border-image: linear-gradient(to right, transparent 5%, lightgrey 5%, lightgrey 95%, transparent 95%) 1;
+} */
+.accordion[open] p:last-of-type {
+    padding-bottom: 1rem;
+}
+.accordion[open] p {
+    transform: none;
+    opacity: 1;
+}
+.accordion[open] p.selected {
+    background-color: var(--row-selected);
+}
+.accordion.sidebar:has(summary) img {
+    width: 2rem;
+    margin: 0 1rem;
+}
+
+/******************************************************************************************************* サイドバーリスト */
+
+.normal-list.sidebar .chklist {
+    display: flex;
+    align-items: center;
+    padding: 0 1rem;
+}
+.normal-list.sidebar .chklist .normal-chk {
+    margin-right: 1rem;
+}
+
+/******************************************************************************************************* パンくずリスト */
+
+.breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    list-style: none;
+    padding: 0;
+}
+
+/******************************************************************************************************* PC表示のみ */
+
+@media screen and (min-width:561px) {
+    .breadcrumb li:not(:last-of-type)::after {
+        content: ">";
+        margin: 0 .6em;
+        /* 記号の左右の余白 */
+        color: #777;
+        /* 記号の色 */
+    }
+}
+
+/******************************************************************************************************* スマホ表示のみ */
+
+@media screen and (max-width:560px) {
+    .breadcrumb li:not(:nth-last-of-type(2)) {
+        display: none;
+    }
+    .breadcrumb li:nth-last-of-type(2)::before {
+        content: "<";
+        margin: 0 .6em;
+        /* 記号の左右の余白 */
+        color: #777;
+        /* 記号の色 */
+    }
+}
+
+
+/******************************************************************************************************* PCとスマホのホバーした時の処理 */
+
+@media (hover: hover) {
+    .normal-list>ul>li:hover {
+        /* background-color: var(--row-hover-bg); */
+        /* transform: scale(1.1, 1.1); */
+        font-weight: bold;
+    }
+}
+@media (hover: none) {
+    .normal-list>ul>li:hover {
+        background-color: transparent;
+    }
+}

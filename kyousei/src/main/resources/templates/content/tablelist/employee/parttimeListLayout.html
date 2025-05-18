@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,viewport-fit=cover">
+
+<head>
+    <meta charset="UTF-8">
+    <link th:href="@{/css/tablelist.css}" rel="stylesheet" type="text/css">
+
+    <style type="text/css">
+        .tablelist-parttime .tablelist-container {
+            max-width: 55rem;
+        }
+
+        .tablelist-parttime tr {
+            grid-template-columns: 3rem 5rem minmax(10rem, 1fr) minmax(10rem, 12rem) minmax(10rem, 12rem);
+        }
+
+        .tablelist-parttime footer {
+            padding: 2rem;
+            justify-self: end;
+        }
+
+        .dialog-content.parttimelist {
+            width: 40rem;
+        }
+
+        @media screen and (max-width:560px) {
+            .dialog-content.parttimelist {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div th:replace="~{fragment/main::main-fragment}"></div>
+
+    <script th:src="@{/js/default.js}"></script>
+    <script th:src="@{/js/dialog.js}"></script>
+    <script th:src="@{/js/time.js}"></script>
+    <script th:src="@{/js/list.js}"></script>
+    <script th:src="@{/js/form.js}"></script>
+    <script th:src="@{/js/sidebar.js}"></script>
+    <script th:src="@{/js/check.js}"></script>
+    <script th:src="@{/js/tablelist.js}"></script>
+    <script th:src="@{/js/getinfo.js}"></script>
+    <script th:src="@{/js/combo.js}"></script>
+    <script type="text/JavaScript" th:inline="JavaScript">
+        const token = /*[[${_csrf.token}]]*/; // POST送信用トークン
+        const sqllistdata = /*[[${sqllistdata}]]*/; // リスト用SqlData
+        const sqlformdata = /*[[${sqlformdata}]]*/; // フォーム用SqlData
+        const categorylist = /*[[${categorylist}]]*/; // カテゴリーリスト
+        const subcategorylist = /*[[${subcategorylist}]]*/; // カテゴリーリスト
+        const tablelistName = 'tablelist'; // テーブルリストのID名
+        const tablelistHeaderNames = ['コード', '氏名', '携帯番号', '営業所']; // テーブルリストのヘッダーリスト
+        const tablelistSearchString = ' AND pt.parttime_id'; // SQLのWHERE句用文字列
+
+        let tablelist = /*[[${tablelist}]]*/; // 初期リスト記憶用
+        let list = []; // 検索結果表示用
+        let acquisitionDateTime; // 時刻表示用
+        let sidebarSelectId = 0; // サイドバー選択アイテム記憶用
+
+        const companyid = /*[[${companyid}]]*/; // 自社ID
+        const categoryid = /*[[${categoryid}]]*/; // アルバイトカテゴリーID
+
+// -------------------------------------------------------------------------------------------------------------------------------------- 画面作成
+        // フォーム画面作成
+        function getFormContent(item) {
+            const elmContent = document.createElement('form');
+            elmContent.classList.add('dialog-content', 'parttimelist');
+            elmContent.setAttribute('id', 'parttime-form');
+            // DB登録用隠しアイテム
+            elmContent.insertAdjacentHTML('beforeend', '<input name="parttime_id" type="hidden" value="' + item.parttime_id + '">');
+            elmContent.insertAdjacentHTML('beforeend', '<input name="employee_id" type="hidden" value="' + item.employee_id + '">');
+            elmContent.insertAdjacentHTML('beforeend', '<input name="person_id" type="hidden" value="' + item.person_id + '">');
+            elmContent.insertAdjacentHTML('beforeend', '<input name="code" type="hidden" value="' + item.code + '">');            
+            elmContent.insertAdjacentHTML('beforeend', '<input name="version" type="hidden" value="' + item.version + '">');
+
+            // 営業所セレクトボックス
+            if (item.office_id == 0) {
+                const selectItem = document.querySelector('#sidebar-area li.selected > input');
+                item.office_id = selectItem.value;
+            }
+            const selectOffice = createComboBox(sidebarlist, 'office', item.office_id, null);
+            const selectOfficeContent = getComboBox('営業所', selectOffice);
+            selectOfficeContent.classList.add('cp6');
+            elmContent.insertAdjacentElement('beforeend', selectOfficeContent);
+            // 氏名入力ボックス
+            const nameContent = getSeparateNameInputBoxWithKana(item);
+            nameContent.classList.add('cp12');
+            elmContent.insertAdjacentElement('beforeend', nameContent);
+            // 電話番号入力ボックス
+            const phoneContent = getPhoneNumberInputBox(item);
+            phoneContent.classList.add('cp4');
+            elmContent.insertAdjacentElement('beforeend', phoneContent);
+            // 定時（出勤時刻）
+            const startRegularContent = document.createElement('div');
+            startRegularContent.classList.add('form-dialog-parts', 'ct5', "cp3");
+            startRegularContent.insertAdjacentHTML('beforeend', '<label>定時(出勤)</label>');
+            startRegularContent.insertAdjacentHTML('beforeend', '<input name="start_regular_hours" class="normal-input" type="time" value="' + item.start_regular_hours + '" onfocus="this.select();">');
+            elmContent.insertAdjacentElement('beforeend', startRegularContent);
+            // 定時（退勤時刻）
+            const endRegularContent = document.createElement('div');
+            endRegularContent.classList.add('form-dialog-parts', 'ct8', "cp3");
+            endRegularContent.insertAdjacentHTML('beforeend', '<label>定時(退勤)</label>');
+            endRegularContent.insertAdjacentHTML('beforeend', '<input name="end_regular_hours" class="normal-input" type="time" value="' + item.end_regular_hours + '" onfocus="this.select();">');
+            elmContent.insertAdjacentElement('beforeend', endRegularContent);
+
+            // 支払い方法セレクトボックス
+            const selectPaymentMethodContent = getPaymentMethodSelectBox(item);
+            selectPaymentMethodContent.classList.add('cp3');
+            elmContent.insertAdjacentElement('beforeend', selectPaymentMethodContent);  
+            // 時給入力ボックス
+            const hourlywageContent = getHourlyWageInputBox(item);
+            hourlywageContent.classList.add('ct4', 'cp3');
+            elmContent.insertAdjacentElement('beforeend', hourlywageContent);
+            // 時給（土日）入力ボックス
+            const weekendHourlywageContent = getWeekendHourlyWageInputBox(item);
+            weekendHourlywageContent.classList.add('ct7', 'cp3');
+            elmContent.insertAdjacentElement('beforeend', weekendHourlywageContent);
+            // 交通費入力ボックス
+            const transcostContent = getTransCostInputBox(item);
+            transcostContent.classList.add('ct10', 'cp3');
+            elmContent.insertAdjacentElement('beforeend', transcostContent);
+
+            // メールアドレス入力ボックス
+            const mailContent = getMailAddressInputBox(item);
+            mailContent.classList.add('cp12');
+            elmContent.insertAdjacentElement('beforeend', mailContent);
+            // 郵便番号・住所入力ボックス
+            const addressContent = getAddressInputBox(item);
+            addressContent.classList.add('cp12');
+            elmContent.insertAdjacentElement('beforeend', addressContent);
+            // 生年月日入力ボックス
+            const birthdayContent = getBirthdaySelectBox(item);
+            birthdayContent.classList.add('cp4');
+            elmContent.insertAdjacentElement('beforeend', birthdayContent);
+            // 性別セレクトボックス
+            const selectGenderContent = getGenderSelectBox(item);
+            selectGenderContent.classList.add('ct5', 'cp4');
+            elmContent.insertAdjacentElement('beforeend', selectGenderContent);           
+            // 血液型セレクトボックス
+            const selectBloodContent = getBloodTypeSelectBox(item);
+            selectBloodContent.classList.add('ct9', 'cp4');
+            elmContent.insertAdjacentElement('beforeend', selectBloodContent);            
+            // 緊急連絡先入力ボックス
+            const emergencyContent = getEmergencyInputBox(item);
+            emergencyContent.classList.add('cp12');
+            elmContent.insertAdjacentElement('beforeend', emergencyContent);
+            return elmContent;
+        }
+
+// -------------------------------------------------------------------------------------------------------------------------------------- 更新時の処理
+        // 入力チェック
+        function execFormDataCheck() {
+            const name = document.querySelector('[name="last_name"]');
+            if (name != null && name.value == "") {
+                const msg = '姓が入力されていません';
+                const title = 'エラー';
+                const headerColor = 'red';
+                createMessageDialog(msg, title, headerColor);
+                return false;
+            }
+            return true;
+        }
+
+        // 作成・更新処理
+        async function execUpdateFormData() {
+            if (execFormDataCheck() == false) {
+                return;
+            } else {
+                const form = document.getElementById('parttime-form');
+                const formData = new FormData(form);
+                const formdata = {};
+                formdata.parttime_id = formData.get('parttime_id');
+                formdata.employee_id = formData.get('employee_id');
+                formdata.code = formData.get('code');
+                formdata.person_id = formData.get('person_id');                
+                formdata.company_id = companyid;
+                formdata.office_id = formData.get('office');
+                formdata.category_id = categoryid;
+                formdata.last_name = formData.get('last_name');
+                formdata.first_name = formData.get('first_name');
+                formdata.last_name_kana = formData.get('last_name_kana');
+                formdata.first_name_kana = formData.get('first_name_kana');
+                formdata.phone_number = formData.get('phone_number');
+                formdata.full_address = formData.get('full_address');
+                formdata.email = formData.get('email');
+                formdata.hourly_wage = formData.get('hourly_wage');
+                formdata.weekend_hourly_wage = formData.get('weekend_hourly_wage');
+                formdata.trans_cost = formData.get('trans_cost');
+                formdata.payment_method = formData.get('payment_method');
+                const start = formData.get('start_regular_hours');
+                formdata.start_regular_hours = start;
+                const end = formData.get('end_regular_hours');
+                formdata.end_regular_hours = end;
+                const workTimeStr = resultSubtractingTime(start, end);
+                const workTimeNum = parseTimeToNum(workTimeStr);
+                if (workTimeNum > 6 && workTimeNum <= 8) {
+                    formdata.regular_breake_time = "00:45";
+                } else if (workTimeNum > 8) {
+                    formdata.regular_breake_time = "01:00";
+                } else {
+                    formdata.regular_breake_time = "00:00";
+                }
+                formdata.gender= formData.get('gender');
+                formdata.blood_type = formData.get('blood_type');
+                formdata.birthday = formData.get('birthday');
+                formdata.version = formData.get('version');
+                formdata.emergency_contact = formData.get('emergency_contact');
+                formdata.emergency_contact_number = formData.get('emergency_contact_number');
+                // 郵便番号はフォームが違うため別処理
+                const postal = document.querySelector('input[name=postal_code]');
+                formdata.postal_code = postal.value;
+                // 保存処理
+                const id = formdata.parttime_id;
+                const selectId = formdata.office_id;
+                const obj = document.getElementById('sidebar-item' + formdata.office_id);
+                await saveFormData('/personnel/parttime/save', formdata, id, selectId, tablelistName, obj);
+            }
+        }
+
+// -------------------------------------------------------------------------------------------------------------------------------------- 初期化時の処理
+        window.addEventListener("load", () => {
+            // 検索ボックスでエンターキーが押された時の処理を登録
+            document.getElementById('search-box').addEventListener('search', function(e) {
+                //　✖️が押された時の処理
+                if ( this.value.length === 0 ) {
+                    extractListFromSelectionCriteria();
+                    updateDisplay();
+                } else {
+                    createTablelistFromSearchCriteria(this.value);
+                }                
+            }, false);
+            // 初期リストを編集用リストにコピー
+            list = tablelist;
+            // フッター表示用の取得時刻を設定
+            acquisitionDateTime = getNow();
+            // ヘッダー作成
+            createHeader();
+            // 会社リストの先頭に全て表示を追加する            
+            sidebarlist = addAllSelectionsToTopOfList(categorylist);
+            // サイドバー作成
+            const area = document.getElementById("sidebar-area");
+            createSidebarList(sidebarlist, area, "アルバイト一覧", "updateWhenSelected", tablelistName);
+            // 画面更新
+            updateDisplay();
+        });
+    </script>
+</body>
+
+</html>

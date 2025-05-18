@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{layout/tablelist}">
+
+<head>
+    <title>支店・担当</title>
+    <style type="text/css">
+        /* PC表示のみ */
+        @media screen and (min-width:561px) {
+            .table-container {
+                max-width: 60rem;
+            }
+            .normal-table tr {
+                grid-template-columns: 3rem 5rem 5rem minmax(10rem, 1fr) minmax(10rem, 15rem) 1rem;
+            }
+            .form-dialog {
+                width: 40rem;
+            }
+            .table-container .tab header {
+                grid-template-columns: 1fr auto;
+                column-gap: 1rem;
+            }
+        }
+        /* スマホ表示のみ */
+        @media screen and (max-width:560px) {
+            .table-container {
+                max-width: 100%;
+            }
+            .normal-table tr {
+                grid-template-columns: 1fr;
+                height: 100%;
+                padding: 1.5rem;
+            }
+            .normal-table tr td[name="id-cell"]::before {
+                content: "ID : ";
+            }
+            .normal-table tr td[name="code-cell"]::before {
+                content: "コード : ";
+            }
+            .normal-table tr td[name="tel-cell"]::before {
+                content: "電話番号 : ";
+            }
+            .normal-table tr td[name="company-cell"]::before {
+                content: "会社名 : ";
+            }
+            .normal-table tr td[name="name-cell"] {
+                font-size: 1.2rem;
+                font-weight: bold;
+                margin-bottom: .5rem;
+            }
+            .form-dialog {
+                width: 100%
+            }
+        }
+    </style>
+</head>
+
+<body layout:fragment="layout-body">
+    <div class="normal-body index">
+        <div class="table-container">
+            <!-- パンくずリスト -->
+            <div
+                th:with="breadcrumbs=${ { {url:'/' ,label:'ホーム'},{url:'/management', label:'管理'},{url:'', label:'支店・担当'} } }">
+                <div th:replace="~{fragment/main::breadcrumb-fragment(${breadcrumbs})}"></div>
+            </div>
+            <div class="tab">
+                <ul class="tab-menu">
+                    <li class="tab-menu-item is-active" data-tab="01">支店</li>
+                    <li class="tab-menu-item" data-tab="02">担当</li>
+                </ul>
+                <div class="tab-panel">
+                    <div class="tab-panel-box is-show" data-panel="01">
+                        <!-- ヘッダー -->
+                        <header class="form-parts tablelist">
+                            <div th:replace="~{fragment/header::header-search-fragment}"></div>
+                            <div th:replace="~{fragment/header::header-btns-fragment}"></div>
+                        </header>
+                        <!-- コンテンツ -->
+                        <main id="scroll-area">
+                            <table id="tablelist01" name="scroll-element" class="normal-table">
+                                <tbody></tbody>
+                            </table>
+                            <button type="button" class="page-top"></button>
+                        </main>
+                        <!-- フッター -->
+                        <footer id="footer-text01" class="pc-style"><span></span></footer>
+                    </div>
+                    <div class="tab-panel-box" data-panel="02">
+                        <!-- ヘッダー -->
+                        <header class="form-parts tablelist">
+                            <div th:replace="~{fragment/header::header-search-fragment}"></div>
+                            <div th:replace="~{fragment/header::header-btns-fragment}"></div>
+                        </header>
+                        <!-- コンテンツ -->
+                        <main id="scroll-area">
+                            <table id="tablelist02" name="scroll-element" class="normal-table">
+                                <tbody></tbody>
+                            </table>
+                            <button type="button" class="page-top"></button>
+                        </main>
+                        <!-- フッター -->
+                        <footer id="footer-text02" class="pc-style"><span></span></footer>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <script th:src="@{/js/default.js}"></script>
+    <script th:src="@{/js/tablelist.js}"></script>
+    <script type="text/JavaScript" th:inline="JavaScript">
+        const token = /*[[${_csrf.token}]]*/;
+        // const sidebarchildlist = /*[[${sidebarchildlist}]]*/; // サイドバーリスト用
+        // const sidebarparentlist = /*[[${sidebarparentlist}]]*/; // サイドバー親リスト用
+        const sqlofficelistdata = /*[[${sqlofficelistdata}]]*/; // リスト再取得用エンティティ
+        const sqlstafflistdata = /*[[${sqlstafflistdata}]]*/; // リスト再取得用エンティティ
+
+        const sqlofficeformdata = /*[[${sqlofficeformdata}]]*/; // 新規・更新用エンティティ
+        const sqlstaffformdata = /*[[${sqlstaffformdata}]]*/; // 新規・更新用エンティティ
+        const officeformentity = /*[[${officeformentity}]]*/; // 新規・更新用エンティティ
+        const staffformentity = /*[[${staffformentity}]]*/; // 新規・更新用エンティティ
+
+        const downloaddata = /*[[${downloaddata}]]*/; // CSVダウンロード用エンティティ
+        downloaddata.sqlString += " AND o.office_id ";
+        const deleteStateCode = /*[[${deleteStateCode}]]*/; // 削除用コード
+        // const officecombolist = /*[[${officecombolist}]]*/; // コンボボックス用エンティティ
+        // const headerNames = ['ID', 'コード', '支店名', '電話番号', '会社名'];
+        // let headerNames = [];
+
+        const origin01 = /*[[${origin01}]]*/; // 初期リスト記憶用
+        const origin02 = /*[[${origin02}]]*/; // 初期リスト記憶用
+        let originlist = { "origin01":origin01, "origin02":origin02 };
+        
+        const headerNames01 = ['ID', 'コード', '支店名', '会社名'];
+        const headerNames02 = ['ID', 'コード', '担当者名', '支店名'];
+        let headerNames = { "headerNames01":headerNames01, "headerNames02":headerNames02 }
+
+        let list01 = []; // 編集用
+        let list02 = []; // 編集用
+        let lists = { "list01":list01, "list02":list02 }
+        // let list = [];
+        let simpledata = /*[[${simpledata}]]*/; // Sql実行用エンティティ
+
+        // 新規
+        function createFunc(self) {
+            // ケバブメニューを閉じる
+            closeKebabDialog();
+
+            const selectItem = document.querySelector('#sidebar-area p.selected');
+            if (selectItem == null) {
+                messageDialog("会社が選択されていません", "エラー", "red");
+                return;
+            }
+            // 新規作成画面を開く
+            execCreateForm((tab == "01" ? sql));
+        }
+        // 編集
+        function editFunc(self) {
+            // ケバブメニューを閉じる
+            closeKebabDialog();
+            // 編集画面を開く
+            const selectsqldata = { "sqlString": sqlformdata.sqlString + " AND o.office_id = " + self.dataset.id + ";", "classPath": sqlformdata.classPath };
+            execEditForm(selectsqldata)
+        }
+        // 削除
+        function removeFunc(self) {
+            // ケバブメニューを閉じる
+            closeKebabDialog();
+            // 親要素を取得する
+            const parent = self.closest('.table-container');
+            // 削除用SQL文作成（後部にIN句がつく）
+            simpledata.text = "UPDATE offices SET state = " + deleteStateCode + " WHERE office_id ";
+            execRemove(parent, simpledata);    
+
+        }
+        // ダウンロード
+        function downloadCsvFunc(self) {
+            // ケバブメニューを閉じる
+            closeKebabDialog();
+            // 親要素を取得する
+            const parent = self.closest('.table-container');
+            const down = structuredClone(downloaddata);
+            execDownloadCsv(parent, down);
+        }
+        // 画面更新
+        function updateFunc() {
+            // ケバブメニューを閉じる
+            closeKebabDialog();
+            // リストデータ更新
+            updateList((tab == "01" ? sqlofficelistdata: sqlstafflistdata));
+        }
+        // サイドバーで要素を選択した時の処理
+        function clickSidebarItem(self) {
+            if (self == null) return;
+            // 選択状態を変更する
+            selectAccordionItem(self);
+            // 画面更新
+            filterDisplay();
+        }
+        // 画面更新時の処理
+        function filterDisplay() {
+            const panel = document.querySelector('.tab-panel');
+            if (panel == null) return;
+            const panels = panel.querySelectorAll('.tab-panel-box');
+            if (panels == null) return;
+            panels.forEach(value => {
+                let num = value.dataset.panel;
+                let originName = "origin" + num;
+                let listName = "list" + num;
+                let tableName = "tablelist" + num;
+                let footerName = "footer-text" + num;
+                let headerName = "headerNames" + num;
+                let origin = structuredClone(originlist[originName]);
+                // 選択要素で絞り込む
+                let list = extractListFromAccordionItem(origin);
+                // lists[listName] = structuredClone(list);
+                // 検索ボックスのワードで絞り込む
+                list = extractListFromSearchBox(list);
+                // 画面更新
+                updateListDisplay(tableName, headerNames[headerName], list, footerName);
+            });
+        }
+        // リスト画面の本体部分を作成する
+        function createListContent(tbl, list) {
+            const panel = tbl.closest('.tab-panel-box');
+            let tab = "00";
+            if (panel != null) {
+                tab = panel.dataset.panel;
+            }
+            list.forEach(function (item) {
+                let newRow = tbl.insertRow();
+                // ID（Post送信用）
+                newRow.setAttribute('id', 'row' + tab + '-' + (tab == "01" ? item.office_id: item.staff_id));
+                newRow.setAttribute('name', 'data-row');
+                newRow.setAttribute('data-id', (tab == "01" ? item.office_id: item.staff_id));
+                let timer;
+                // シングルクリック時の処理
+                newRow.onclick = function (e) { 
+                    // チェックボックスの動作を停止させる
+                    e.preventDefault();
+                    // ダブルクリック判定のための時間を空ける
+                    clearTimeout(timer);
+                    timer = setTimeout(() => {
+                        // 時間が経過したらシングルクリックに確定してチェック状態を反転させる
+                        clickCheckBtnManual((tab == "01" ? item.office_id: item.staff_id), this);
+                    }, 180);
+                }
+                // ダブルクリック時の処理
+                newRow.ondblclick = function (e) { 
+                    // チェックボックスの動作を停止させる
+                    e.preventDefault();
+                    // シングルクリックでは無くなったのでタイマーを停止
+                    clearTimeout(timer);
+                    // フォーム入力画面を表示する
+                    editFunc(this);
+                }
+                // 選択用チェックボックス
+                newRow.insertAdjacentHTML('beforeend', '<td name="chk-cell" class="pc-style"><input id="chk' + tab + '-' + (tab == "01" ? item.office_id: item.staff_id) + '" class="normal-chk" name="chk-box" type="checkbox" value="' + item.office_id + '"></td>');
+                // ID
+                newRow.insertAdjacentHTML('beforeend', '<td name="id-cell">' + String((tab == "01" ? item.office_id: item.staff_id)).padStart(4, '0') + '</td>');
+                // コード
+                newRow.insertAdjacentHTML('beforeend', '<td name="code-cell">' + String(item.code).padStart(4, '0') + '</td>');
+                // 名前
+                newRow.insertAdjacentHTML('beforeend', '<td name="name-cell"><span class="kana">' + (tab == "01" ? item.office_name_kana: item.full_nama_kana) + '</span><br><span>' + (tab == "01" ? item.office_name: item.full_name) + '</span></td>');
+                // 会社・営業所
+                newRow.insertAdjacentHTML('beforeend', '<td name="company-cell"><span>' + ((tab == "01" ? item.company_name: item.office_name) ?? "登録なし") + '</span></td>');
+            });
+        }
+        // フォーム画面のコンテント部分を作成
+        function getFormContent(item) {
+            const tabItem = document.querySelector(".tab-menu-item.is-active");
+            const tab = tabItem == null ? "00": tabItem.dataset.tab;
+
+            const elmContent = document.createElement('form');
+            elmContent.classList.add('dialog-content');
+            elmContent.setAttribute('id', 'tablelist-form');
+            if (tab == "01") {
+                // DB登録用隠しアイテム
+                elmContent.insertAdjacentHTML('beforeend', '<input name="office_id" type="hidden" value="' + item.office_id + '">');
+                elmContent.insertAdjacentHTML('beforeend', '<input name="corporation_id" type="hidden" value="' + item.corporation_id + '">');
+                elmContent.insertAdjacentHTML('beforeend', '<input name="code" type="hidden" value="' + item.code + '">');            
+                elmContent.insertAdjacentHTML('beforeend', '<input name="version" type="hidden" value="' + item.version + '">');
+                elmContent.insertAdjacentHTML('beforeend', '<input name="tab" type="hidden" value="' + tab + '">');
+                // 会社ボックス
+                if (item.company_id == 0) {
+                    const selectItem = document.querySelector('#sidebar-area p.selected');
+                    item.company_id = selectItem == null ? 0: selectItem.dataset.id;
+                    item.company_name = selectItem == null ? "": selectItem.innerText;
+                }
+                elmContent.insertAdjacentHTML('beforeend', '<div class="input-area w100">' + 
+                    '<input name="company_id" type="hidden" value="' + item.company_id + '">' + 
+                    '<div class="form-parts w100"><label>会社名</label><input disabled name="office_name" class="normal-input frameless" type="text" value="' + (item.company_name ?? "") + '" placeholder="会社名" onfocus="this.select();"></div></div>');
+                // 支店名入力ボックス
+                elmContent.insertAdjacentHTML('beforeend', '<div class="input-area w100">' + 
+                    '<div class="form-parts w100"><label>支店名</label><input name="office_name" class="normal-input" type="text" value="' + (item.office_name ?? "") + '" placeholder="支店名" onfocus="this.select();"></div></div>');
+                // 支店名（かな）入力ボックス
+                elmContent.insertAdjacentHTML('beforeend', '<div class="input-area w100">' + 
+                    '<div class="form-parts w100"><label>かな</label><input name="office_name_kana" class="normal-input" type="text" value="' + (item.office_name_kana ?? "") + '" placeholder="してんめい" onfocus="this.select();"></div></div>');
+                // アコーディオンパネル
+                const accordion = document.createElement('details');
+                accordion.classList.add('accordion');
+                accordion.insertAdjacentHTML('beforeend', '<summary class="mark">詳細</summary>')
+                // 電話番号・ファックス番号入力ボックス
+                accordion.insertAdjacentHTML('beforeend', '<div class="input-area w100">' + 
+                    '<div class="form-parts w30"><label>電話番号</label><input name="tel_number" class="normal-input" type="text" inputmode="numeric" pattern="\\d{2,4}-\\d{2,4}-\\d{3,4}" value="' + (item.tel_number ?? "") + '" placeholder="012-3456-7890" onfocus="this.select();"></div>' + 
+                    '<div class="form-parts w30"><label>ファックス番号</label><input name="fax_number" class="normal-input" type="text" inputmode="numeric" pattern="\\d{2,4}-\\d{2,4}-\\d{3,4}" value="' + (item.fax_number ?? "") + '" placeholder="012-3456-7890" onfocus="this.select();"></div></div>');
+                // 郵便番号入力ボックス
+                accordion.insertAdjacentHTML('beforeend', '<div class="input-area w100">' + 
+                    '<div class="form-parts w35"><label>郵便番号</label><input id="postalcode" name="postal_code" class="normal-input" type="text" inputmode="numeric" pattern="\\d{3}-?\\d{4}" value="' + (item.postal_code ?? "") + '" placeholder="012-3456" onfocus="this.select();"><img title="検索" src="/icons/search.png" onclick="getAddress()"></div></div>');
+                const postalArea = accordion.querySelector('input[name="postal_code"]');
+                // 郵便番号入力ボックスでエンターキーが押された時の処理を登録
+                postalArea.addEventListener('keydown', function (e) { getAddress(e); });
+                // 住所入力ボックス
+                accordion.insertAdjacentHTML('beforeend', '<div class="input-area w100">' + 
+                    '<div class="form-parts w100"><label>住所</label><input id="fulladdress" name="full_address" class="normal-input" type="text" value="' + (item.full_address ?? "") + '" placeholder="例）大阪府高槻市柱本5丁目7番10号" onfocus="this.select();"></div></div>');
+                // メールアドレス入力ボックス
+                accordion.insertAdjacentHTML('beforeend', '<div class="input-area w100">' + 
+                    '<div class="form-parts w100"><label>メールアドレス</label><input name="email" class="normal-input" type="email" value="' + (item.email ?? "") + '" placeholder="例）example@kyouseibin.com" onfocus="this.select();"></div></div>');
+                // WEBアドレス入力ボックス
+                accordion.insertAdjacentHTML('beforeend', '<div class="input-area w100">' + 
+                    '<div class="form-parts w100"><label>WEBアドレス</label><input name="web_address" class="normal-input" type="text" value="' + (item.web_address ?? "") + '" placeholder="https://www.example.com" onfocus="this.select();"></div></div>');
+                elmContent.insertAdjacentElement('beforeend', accordion);
+            } else {
+                // DB登録用隠しアイテム
+                elmContent.insertAdjacentHTML('beforeend', '<input name="staff_id" type="hidden" value="' + item.staff_id + '">');
+                elmContent.insertAdjacentHTML('beforeend', '<input name="company_id" type="hidden" value="' + item.company_id + '">');
+                elmContent.insertAdjacentHTML('beforeend', '<input name="code" type="hidden" value="' + item.code + '">');            
+                elmContent.insertAdjacentHTML('beforeend', '<input name="version" type="hidden" value="' + item.version + '">');
+                elmContent.insertAdjacentHTML('beforeend', '<input name="tab" type="hidden" value="' + tab + '">');
+                // 支店セレクトボックス
+                if (item.office_id == 0) {
+                    const selectItem = document.querySelector('#sidebar-area li.selected');
+                    item.office_id = selectItem == null ? 0: selectItem.dataset.id;
+                }
+                const combolist = origin01.filter(value => (value.company_id == item.company_id));
+                elmContent.insertAdjacentHTML('beforeend', '<div class="form-parts w40"><label>支店</label><select name="office" class="normal-select"></select></div>');
+                const officeArea = elmContent.querySelector('select[name="office"]');
+                createComboBoxWithTop(officeArea, combolist);
+                setComboboxSelected(officeArea, item.office_id);
+
+                elmContent.insertAdjacentHTML('beforeend', '<div class="input-area w100">' + 
+                    '<input name="company_id" type="hidden" value="' + item.company_id + '">' + 
+                    '<div class="form-parts w100"><label>会社名</label><input disabled name="company_name" class="normal-input frameless" type="text" value="' + (item.company_name ?? "") + '" placeholder="会社名" onfocus="this.select();"></div></div>');
+                // 支店名入力ボックス
+                elmContent.insertAdjacentHTML('beforeend', '<div class="input-area w100">' + 
+                    '<div class="form-parts w100"><label>支店名</label><input name="office_name" class="normal-input" type="text" value="' + (item.office_name ?? "") + '" placeholder="支店名" onfocus="this.select();"></div></div>');
+                // 支店名（かな）入力ボックス
+                elmContent.insertAdjacentHTML('beforeend', '<div class="input-area w100">' + 
+                    '<div class="form-parts w100"><label>かな</label><input name="office_name_kana" class="normal-input" type="text" value="' + (item.office_name_kana ?? "") + '" placeholder="してんめい" onfocus="this.select();"></div></div>');
+                // アコーディオンパネル
+                const accordion = document.createElement('details');
+                accordion.classList.add('accordion');
+                accordion.insertAdjacentHTML('beforeend', '<summary class="mark">詳細</summary>')
+                // 電話番号・ファックス番号入力ボックス
+                accordion.insertAdjacentHTML('beforeend', '<div class="input-area w100">' + 
+                    '<div class="form-parts w30"><label>電話番号</label><input name="tel_number" class="normal-input" type="text" inputmode="numeric" pattern="\\d{2,4}-\\d{2,4}-\\d{3,4}" value="' + (item.tel_number ?? "") + '" placeholder="012-3456-7890" onfocus="this.select();"></div>' + 
+                    '<div class="form-parts w30"><label>ファックス番号</label><input name="fax_number" class="normal-input" type="text" inputmode="numeric" pattern="\\d{2,4}-\\d{2,4}-\\d{3,4}" value="' + (item.fax_number ?? "") + '" placeholder="012-3456-7890" onfocus="this.select();"></div></div>');
+                // 郵便番号入力ボックス
+                accordion.insertAdjacentHTML('beforeend', '<div class="input-area w100">' + 
+                    '<div class="form-parts w35"><label>郵便番号</label><input id="postalcode" name="postal_code" class="normal-input" type="text" inputmode="numeric" pattern="\\d{3}-?\\d{4}" value="' + (item.postal_code ?? "") + '" placeholder="012-3456" onfocus="this.select();"><img title="検索" src="/icons/search.png" onclick="getAddress()"></div></div>');
+                const postalArea = accordion.querySelector('input[name="postal_code"]');
+                // 郵便番号入力ボックスでエンターキーが押された時の処理を登録
+                postalArea.addEventListener('keydown', function (e) { getAddress(e); });
+                // 住所入力ボックス
+                accordion.insertAdjacentHTML('beforeend', '<div class="input-area w100">' + 
+                    '<div class="form-parts w100"><label>住所</label><input id="fulladdress" name="full_address" class="normal-input" type="text" value="' + (item.full_address ?? "") + '" placeholder="例）大阪府高槻市柱本5丁目7番10号" onfocus="this.select();"></div></div>');
+                // メールアドレス入力ボックス
+                accordion.insertAdjacentHTML('beforeend', '<div class="input-area w100">' + 
+                    '<div class="form-parts w100"><label>メールアドレス</label><input name="email" class="normal-input" type="email" value="' + (item.email ?? "") + '" placeholder="例）example@kyouseibin.com" onfocus="this.select();"></div></div>');
+                // WEBアドレス入力ボックス
+                accordion.insertAdjacentHTML('beforeend', '<div class="input-area w100">' + 
+                    '<div class="form-parts w100"><label>WEBアドレス</label><input name="web_address" class="normal-input" type="text" value="' + (item.web_address ?? "") + '" placeholder="https://www.example.com" onfocus="this.select();"></div></div>');
+                elmContent.insertAdjacentElement('beforeend', accordion);
+            }
+
+            return elmContent;
+        }
+        // 入力チェック
+        function execFormDataCheck() {
+            let msg = "";
+            // 名前が入力されていないとFalseを返す
+            const name = document.querySelector('input[name="office_name"]');
+            if (name != null && name.value == "") msg += '\n支店名が入力されていません';
+            // 電話番号チェック
+            const phone = document.querySelector('input[name="tel_number"]');
+            if (!checkPhoneNumber(phone)) msg += '\n電話番号に誤りがあります';
+            // 電話番号チェック
+            const postal = document.querySelector('input[name="postal_code"]');
+            if (!checkPostalCode(postal)) msg += '\n郵便番号に誤りがあります';
+            // メールアドレスチェック
+            const email = document.querySelector('input[name="email"]');
+            if (!checkMailAddress(email)) msg += '\nメールアドレスに誤りがあります';
+            // WEBアドレスチェック
+            const web = document.querySelector('input[name="web_address"]');
+            if (!checkWebAddress(web)) msg += '\nWEBアドレスに誤りがあります';
+            // エラーが一つ以上あればエラーメッセージダイアログを表示する
+            if (msg != "") {
+                messageDialog(msg, 'エラー', 'red');
+                return false;
+            }
+            return true;
+        }
+        // 作成・更新処理
+        async function execUpdateFormData() {
+            // エラーチェック
+            if (execFormDataCheck() == false) {
+                return;
+            } else {
+                const form = document.getElementById('tablelist-form');
+                const formData = new FormData(form);
+                const tab = formData.get('tab');
+                const formdata = structuredClone((tab == "01" ? sqlofficeformdata: sqlstaffformdata));
+                formdata.office_id = formData.get('office_id');
+                formdata.company_id = formData.get('company_id');
+                formdata.corporation_id = formData.get('corporation_id');
+                formdata.code = formData.get('code');
+                formdata.office_name = formData.get('office_name').trim();
+                formdata.office_name_kana = formData.get('office_name_kana').trim();
+                formdata.tel_number = formData.get('tel_number').trim();
+                formdata.fax_number = formData.get('fax_number').trim();
+                formdata.postal_code = formData.get('postal_code').trim();
+                formdata.full_address = formData.get('full_address').trim();
+                formdata.email = formData.get('email').trim();
+                formdata.web_address = formData.get('web_address').trim();
+                formdata.version = formData.get('version');
+                // 保存処理
+                updateForm(formdata, (tab == "01" ? sqlofficelistdata: sqlstafflistdata), "/update/office");
+            }
+        }
+        // ページ読み込み後の処理
+        window.addEventListener("load", () => {
+            // スピナー表示
+            startProcessing();
+            // 検索ボックス入力時の処理
+            document.getElementById('search-box').addEventListener('search', function(e) {
+                // if (e.target.value == "") list = structuredClone(origin);
+                if (e.target.value == "") list = structuredClone(origin);
+                filterDisplay();
+            }, false);
+            // タブメニュー処理
+            const tabMenus = document.querySelectorAll('.tab-menu-item');
+            // イベント付加
+            tabMenus.forEach((tabMenu) => {
+                tabMenu.addEventListener('click', tabSwitch);
+            })
+            // サイドバー作成
+            createAccordionSidebar(/*[[${sidebarparentlist}]]*/, /*[[${sidebarchildlist}]]*/, "支店・担当", true);
+            // // 画面更新
+            const list = [];
+            updateListDisplay("tablelist01", headerNames["headerNames01"], list, "footer-text01");
+            updateListDisplay("tablelist02", headerNames["headerNames02"], list, "footer-text02");
+            // スピナー消去
+            processingEnd();
+        });
+    </script>
+</body>
+
+</html>

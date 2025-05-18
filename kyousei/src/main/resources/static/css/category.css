@@ -1,0 +1,25 @@
+@charset "UTF-8";
+@import url("/css/item/style.css");
+@import url("/css/item/color.css");
+@import url("/css/item/button.css");
+@import url("/css/item/input.css");
+@import url("/css/item/dialog.css");
+@import url("/css/item/parts.css");
+@import url("/css/item/screen.css");
+@import url("/css/item/list.css");
+@import url("/css/item/select.css");
+
+/******************************************************************************************************* 基本 */
+
+.categoryregist-container {
+    position: relative;
+    display: grid;
+    grid-template-rows: auto auto 1fr auto;
+    padding: 0 2rem 2rem 2rem;
+    height: 100%;
+}
+
+.categoryregist-container>main {
+    overflow: hidden;
+    height: 100%;        
+}

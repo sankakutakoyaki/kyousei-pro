@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{layout/tablelist-noside}">
+
+<head>
+    <title>日払い</title>
+    <style type="text/css">
+        .table-container {
+            width: 52rem;
+        }
+        .normal-table tr {
+            grid-template-columns: 3rem 10rem 8rem 4rem 4rem 4rem 5rem 6rem 6rem 1fr;
+        }
+        .normal-btn.frameless {
+            min-width: 3rem;
+        }
+        .input-area.date-move {
+            column-gap: 2rem;
+        }
+        header {
+            display: grid;
+            row-gap: 1rem;
+        }
+        .normal-table td[data-state="支払い済"] {
+            color: red;
+        }
+        .normal-table td[name="hourly-wage"] {
+            padding-right: 1rem;
+        }
+        .normal-table td[name="trans-cost"] {
+            padding-right: 2rem;
+        }
+        .dialog-content.timeworks {
+            width: 30rem;
+        }
+        .dialog-content.cash-expenses {
+            width: 20rem;
+        }
+        @media screen and (max-width:1240px) {}
+
+        @media screen and (max-width:560px) {
+            .table-container {
+                max-width: 100%;
+            }
+            .normal-table tr {
+                grid-template-columns: 1fr;
+                height: fit-content;
+                padding: 1.5rem;
+            }
+            .normal-input.date-area {
+                width: 100%;
+                /* margin-bottom: .5rem; */
+            }
+            .input-area.date-area :is(input,button) {
+                margin-bottom: .5rem;
+            }
+            .normal-table tr td[name="full-name"]::before {
+                content: "氏名 : ";
+                font-weight: bold;
+            }
+            .normal-table tr td[name="work-date"]::before {
+                content: "出勤日 : ";
+                font-weight: bold;
+            }
+            .normal-table tr td[name="start-time"]::before {
+                content: "出勤時刻 : ";
+                font-weight: bold;
+            }
+            .normal-table tr td[name="end-time"]::before {
+                content: "退勤時刻 : ";
+                font-weight: bold;
+            }
+            .normal-table tr td[name="breake-time"]::before {
+                content: "休憩時間 : ";
+                font-weight: bold;
+            }
+            .normal-table tr td[name="hourly-wage"]::before {
+                content: "時給 : ";
+                font-weight: bold;
+            }
+            .normal-table tr td[name="trans-cost"]::before {
+                content: "交通費 : ";
+                font-weight: bold;
+            }
+        }
+    </style>
+</head>
+
+<body layout:fragment="layout-body">
+    <div class="normal-body">
+        <div class="table-container">
+            <!-- パンくずリスト -->
+            <div
+                th:with="breadcrumbs=${ { {url:'/' ,label:'ホーム'},{url:'/personnel', label:'人事・労務'},{url:'', label:'日払い'} } }">
+                <div th:replace="~{fragment/main::breadcrumb-fragment(${breadcrumbs})}"></div>
+            </div>
+            <!-- ヘッダー -->
+            <header>
+                <div class="input-area w100">
+                    <!-- 期間指定ボックス -->
+                    <div class="input-area date-area">
+                        <input name="start-date" class="normal-input date-area" type="date" value="" onfocus="this.select();">
+                        <span class="pc-style">〜</span>
+                        <input name="end-date" class="normal-input date-area" type="date" value="" onfocus="this.select();">
+                        <button name="search-btn" class="normal-btn ok" type="button" onclick="execSearch()">
+                            <span>検索</span>
+                        </button>
+                    </div>
+                    <div class="input-area w100">
+                        <div class="form-parts w80">
+                            <select id="employee-select" name="employee-select" class="normal-select" type="text" value=""></select>
+                        </div>
+                        <div class="form-parts w25">
+                            <select id="paystate-select" name="paystate-select" class="normal-select" type="text" value=""></select>
+                        </div>
+                        <div class="input-area w100">
+                            <button id="payment-btn" class="normal-btn" type="button" onclick="execPrint(this)">
+                                <span>支払い</span>
+                            </button>
+                            <button id="print-btn" class="normal-btn" type="button" onclick="execRePrint(this)">
+                                <span>再印刷</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+        
+                <div class="input-area date-move w100 pc-style">
+                    <!-- 日付移動ボタン -->
+                    <div th:replace="~{fragment/header::header-month-move-btn-fragment}"></div>
+                    <div th:replace="~{fragment/header::header-day-move-btn-fragment}"></div>
+                    <div th:replace="~{fragment/header::header-week-move-btn-fragment}"></div>
+                </div>
+            </header>
+            <!-- コンテンツ -->
+            <main id="scroll-area">
+                <table id="tablelist" class="normal-table">
+                    <tbody></tbody>
+                </table>
+                <button type="button" class="page-top"></button>
+            </main>
+            <!-- フッター -->
+            <footer id="footer-text" class="pc-style"><span></span></footer>
+        </div>
+    </div>
+
+    <script th:src="@{/js/default.js}"></script>
+    <script th:src="@{/js/tablelist.js}"></script>
+    <script th:src="@{/js/timeworks.js}"></script>
+    <script type="text/JavaScript" th:inline="JavaScript">
+        const token = /*[[${_csrf.token}]]*/;
+        const sqldata = /*[[${sqldata}]]*/; // リスト再取得用エンティティ
+        // let origin = /*[[${origin}]]*/;
+        let origin = [];
+        let items = [];
+        const headerNames = ['氏名', '出勤日', '出勤', '退勤', '休憩', '時給', '交通費', '状況', ''];
+        const username = /*[[${username}]]*/;
+        const paidCode = /*[[${paidCode}]]*/;
+        const unpaidCode = /*[[${unpaidCode}]]*/;
+        const completeStateCode = /*[[${completeStateCode}]]*/;
+        const notStateCode = /*[[${notStateCode}]]*/;
+        const taxlist = /*[[${taxlist}]]*/;
+        const banklist = /*[[${banklist}]]*/;
+        
+// ----------------------------------------------------------------------------------------------------------------------------------
+        // テーブルリストのコンテント画面を作成する
+        function createListContent(tbl, list) {
+            list.forEach(function (item) {
+                let newRow = tbl.insertRow();
+                // ID（Post送信用）
+                newRow.setAttribute('id', 'row00-' + item.timeworks_id);
+                newRow.setAttribute('name', 'data-row');
+                newRow.setAttribute('data-id', item.timeworks_id);
+                let timer;
+                // シングルクリック時の処理
+                newRow.onclick = function (e) { 
+                    // チェックボックスの動作を停止させる
+                    e.preventDefault();
+                    // ダブルクリック判定のための時間を空ける
+                    clearTimeout(timer);
+                    timer = setTimeout(() => {
+                        // 時間が経過したらシングルクリックに確定してチェック状態を反転させる
+                        clickCheckBtnManual(item.timeworks_id, this);
+                    }, 180);
+                }
+                // ダブルクリック時の処理
+                newRow.ondblclick = function (e) { 
+                    // チェックボックスの動作を停止させる
+                    e.preventDefault();
+                    // シングルクリックでは無くなったのでタイマーを停止
+                    clearTimeout(timer);
+                    // フォーム入力画面を表示する
+                    editFunc(this);
+                }
+                // 選択用チェックボックス
+                newRow.insertAdjacentHTML('beforeend', '<td name="chk-cell" class="pc-style"><input id="chk00-' + item.timeworks_id + '" class="normal-chk" name="chk-box" type="checkbox" value="' + item.timeworks_id + '"></td>');
+                // 氏名
+                // newRow.insertAdjacentHTML('beforeend', '<td name="full-name"><span onclick="clickCheckBtnManual(' + item.timeworks_id + ', this)">' + item.full_name + '</span></td>');
+                newRow.insertAdjacentHTML('beforeend', '<td name="full-name"><span>' + item.full_name + '</span></td>');
+                // 出勤日
+                // newRow.insertAdjacentHTML('beforeend', '<td name="work-date"><span onclick="clickCheckBtnManual(' + item.timeworks_id + ', this)">' + item.work_date + '</span></td>');
+                newRow.insertAdjacentHTML('beforeend', '<td name="work-date"><span>' + item.work_date + '</span></td>');
+                // 出勤時刻
+                // newRow.insertAdjacentHTML('beforeend', '<td name="start-time"><input class="normal-input icon-del" type="time" value="' + item.comp_start_time + '" onfocus="this.select()"></span></td>');
+                newRow.insertAdjacentHTML('beforeend', '<td name="start-time"><span>' + (item.comp_start_time ?? "00:00") + '</span></td>');
+                // 退勤時刻
+                // newRow.insertAdjacentHTML('beforeend', '<td name="end-time"><input class="normal-input icon-del" type="time" value="' + item.comp_end_time + '" onfocus="this.select()"></span></td>');
+                newRow.insertAdjacentHTML('beforeend', '<td name="end-time"><span>' + (item.comp_end_time ?? "00:00") + '</span></td>');
+                // 休憩時間
+                newRow.insertAdjacentHTML('beforeend', '<td name="breake-time"><span>' + (item.breake_time ??  + "00:00") + '</span></td>');
+                // 時給
+                // newRow.insertAdjacentHTML('beforeend', '<td name="hourly-wage"><input class="normal-input text-right" value="' + item.hourly_wage + '" onfocus="this.select()"></td>');
+                newRow.insertAdjacentHTML('beforeend', '<td name="hourly-wage" class="text-right"><span>' + item.hourly_wage + '</span></td>');
+                // 交通費
+                // newRow.insertAdjacentHTML('beforeend', '<td name="trans-cost"><input class="normal-input text-right" value="' + item.trans_cost + '" onfocus="this.select()"></span></td>');
+                newRow.insertAdjacentHTML('beforeend', '<td name="trans-cost" class="text-right"><span>' + item.trans_cost + '</span></td>');
+                // 支払い確定状況
+                const stateStr = item.pay_state == paidCode ? "支払い済" : "未払い"
+                // newRow.insertAdjacentHTML('beforeend', '<td name="pay-state" data-state="' + stateStr + '"><span onclick="clickCheckBtnManual(' + item.timeworks_id + ', this)">' + stateStr + '</span></td>');
+                newRow.insertAdjacentHTML('beforeend', '<td name="pay-state" data-state="' + stateStr + '"><span>' + stateStr + '</span></td>');
+                // 編集ボタン
+                // newRow.insertAdjacentHTML('beforeend', '<td name="edit-btn"><div class="img-btn" onclick="editFunc(this)"><img title="編集" src="/icons/edit.png"></div></td>');
+                // newRow.insertAdjacentHTML('beforeend', '<td name="edit-btn"><span class="link-cell" onclick="editFunc(this)">詳細</span></td>');
+            });
+        }
+        // 検索ボタン押下時の処理
+        async function execSearch() {
+            await updateTableList();
+        }
+        // テーブルリストデータを再取得・表示する
+        async function updateTableList() {
+            startProcessing();
+            // 勤怠リストを取得する
+            await getTableList();
+            // 従業員リストを作成する
+            createEmployeeList();
+            // 勤怠リスト作成
+            changeTimeworksList();
+
+            processingEnd();
+        }
+        // 勤怠データリストを取得する
+        async function getTableList() {
+            const start = document.querySelector("[name='start-date']");
+            if (start == null) return;
+            const end = document.querySelector("[name='end-date']");
+            if (end == null) return;
+
+            const url = "/sql/get/list";
+            const sql = {"sqlString":sqldata.sqlString + " AND t.work_date BETWEEN '" + start.value + "' AND '" + end.value + "' ORDER BY t.work_date", "classPath":sqldata.classPath}
+            const data = JSON.stringify(sql);
+            const contentType = 'application/json';
+            const result = await postFetch(url, data, token, contentType);
+            origin = await result.json();
+        }
+        // 従業員リストを作成する
+        function createEmployeeList() {
+            const emps = origin.map(item => ({number:item.employee_id, text:item.full_name}));
+            const emplist = Array.from(
+                new Map(emps.map((item) => [item.number, item])).values()
+            );
+            const empselect = document.getElementById('employee-select');
+            deleteElements('employee-select')
+            createComboBoxWithTop(empselect, emplist)
+        }
+        // 支払い確定状況リストを作成する
+        function createPayStateList() {
+            const statelist = [{"number":unpaidCode, "text":"未払い"}, {"number":paidCode, "text":"支払い済"} ]
+            const stateselect = document.getElementById('paystate-select');
+            createComboBox(stateselect, statelist);
+            // const options = stateselect.options;
+            // if (options != null) options[1].selected = true;
+        }
+        // 画面更新時に従業員・支払い状況リストの選択によってフィルターをかける
+        function changeTimeworksList() {
+            const emp = document.getElementById('employee-select');
+            if (emp == null) return;
+            const state = document.getElementById('paystate-select');
+            if (state == null) return;
+            const payBtn = document.getElementById('payment-btn');
+            if (payBtn == null) return;
+            const printBtn = document.getElementById('print-btn');
+            if (printBtn == null) return;
+
+            if (emp.value == notStateCode) {
+                printBtn.disabled = true;
+                payBtn.disabled = true;
+            } else if (state.value == unpaidCode) {
+                printBtn.disabled = false;
+                payBtn.disabled = false;
+            } else {
+                printBtn.disabled = false;
+                payBtn.disabled = true;
+            }
+            let list = [];
+            if (emp.value > 0) {
+                list = origin?.filter(value => { return value.employee_id == emp.value && value.pay_state == state.value });
+            } else {
+                list = origin?.filter(value => { return value.pay_state == state.value });
+            }
+            if (list.length == 0) {
+                printBtn.disabled = true;
+                payBtn.disabled = true;
+            } 
+            updateListDisplay("tablelist", headerNames, list, "footer-text", true);
+        }
+
+// --------------------------------------------------------------------------------------------------------------------------------------　編集フォーム画面
+        // 編集処理
+        function editFunc(self) {
+            if (self == null) return;
+            createFormDialog(self.dataset.id);
+        }
+        // 勤怠データ編集フォーム画面作成
+        function createFormDialog(id) {
+            const item = origin.find(value => { return value.timeworks_id == id });
+            if (item == null) return;
+            // ヘッダー
+            const elmHeader = getFormHeader("出退勤データ修正");
+            // コンテント
+            const elmContent = getFormContent(item);
+            // フッター
+            const elmFooter = getFormFooter("修正")
+            // ダイアログ作成
+            const elmForm = document.createElement('div');
+            elmForm.classList.add('form-dialog');
+            elmForm.insertAdjacentElement('beforeend', elmHeader);
+            elmForm.insertAdjacentElement('beforeend', elmContent);
+            elmForm.insertAdjacentElement('beforeend', elmFooter);
+            const parent = document.getElementById('form-dialog-area');
+            const elm = document.createElement('div');
+            elm.classList.add('dialog');
+            parent.insertAdjacentElement('beforeend', elm);
+            parent.insertAdjacentElement('beforeend', elmForm);
+        }
+        // フォーム画面のコンテント部分作成
+        function getFormContent(item) {
+            const elmContent = document.createElement('form');
+            elmContent.classList.add('dialog-content', 'timeworks');
+            elmContent.setAttribute('id', 'timeworks-form');
+            // 出勤日・氏名
+            elmContent.insertAdjacentHTML('beforeend', '<div class="input-area w100"><div class="form-parts"><label>出勤日</label><input class="normal-input icon-del" type="date" value="' + item.work_date + '" disabled><span></div>' +
+                                                       '<div class="form-parts"><label>氏名</label><input name="full-name" class="normal-input" value="' + item.full_name + '" onfocus="this.select();"></div></div>');
+            // 住所
+            elmContent.insertAdjacentHTML('beforeend', '<div class="form-parts w100"><label>住所</label><input name="full-address" class="normal-input" value="' + item.full_address + '" onfocus="this.select();"><div>');
+            // 出勤時刻
+            const startContent = document.createElement('div');
+            startContent.classList.add('form-parts');
+            if (parseTimeToNum(item.start_time) < parseTimeToNum(item.start_regular_hours)) {
+                startContent.insertAdjacentHTML('beforeend', '<label>出勤(' + (item.start_time ?? "00:00") + ')</label><input name="start-time" class="normal-input icon-del" type="time" value="' + item.start_regular_hours + '" onfocus="this.select();">');
+            } else {
+                startContent.insertAdjacentHTML('beforeend', '<label>出勤(' + (item.start_regular_hours ?? "00:00") + ')</label><input name="start-time" class="normal-input icon-del" type="time" value="' + item.comp_start_time + '" onfocus="this.select();">');
+            }
+            // 退勤時刻
+            const endContent = document.createElement('div');
+            endContent.classList.add('form-parts');
+            if (parseTimeToNum(item.end_time) < parseTimeToNum(item.end_regular_hours)) {
+                endContent.insertAdjacentHTML('beforeend', '<label>退勤(' + (item.end_time ?? "00:00") + ')</label><input name="end-time" class="normal-input icon-del" type="time" value="' + item.end_regular_hours + '" onfocus="this.select();">');
+            } else {
+                endContent.insertAdjacentHTML('beforeend', '<label>退勤(' + (item.end_regular_hours ?? "00:00") + ')</label><input name="end-time" class="normal-input icon-del" type="time" value="' + item.comp_end_time + '" onfocus="this.select();">');
+            }
+            // 休憩時間
+            const breakeContent = document.createElement('div');
+            breakeContent.classList.add('form-parts');
+            breakeContent.insertAdjacentHTML('beforeend', '<label>休憩(' + (item.regular_breake_time ?? "00:00") + ')</label><input name="breake-time" class="normal-input icon-del" type="time" value="' + (item.regular_breake_time ?? "00:00") + '" onfocus="this.select();">');
+            // 時給
+            const hourlyContent = document.createElement('div');
+            hourlyContent.classList.add('form-parts');
+            if (item.day_of_week == "土" || item.day_of_week == "日") {
+                hourlyContent.insertAdjacentHTML('beforeend', '<label>時給(土日)</label><input name="hourly-wage" class="normal-input text-right" type="text" inputmode="numeric" value="' + item.weekend_hourly_wage + '" onfocus="this.select();">');
+            } else {
+                hourlyContent.insertAdjacentHTML('beforeend', '<label>時給(平日)</label><input name="hourly-wage" class="normal-input text-right" type="text" inputmode="numeric" value="' + item.hourly_wage + '" onfocus="this.select();">');
+            }
+            // 交通費
+            const transContent = document.createElement('div');
+            transContent.classList.add('form-parts');
+            transContent.insertAdjacentHTML('beforeend', '<label>交通費</label><input name="trans-cost" class="normal-input text-right" type="text" inputmode="numeric" value="' + item.trans_cost + '" onfocus="this.select();">');
+
+            const inputRow = document.createElement('div');
+            inputRow.classList.add('input-area');
+            inputRow.insertAdjacentElement('beforeend', startContent);
+            inputRow.insertAdjacentElement('beforeend', endContent);
+            inputRow.insertAdjacentElement('beforeend', breakeContent);
+            inputRow.insertAdjacentElement('beforeend', hourlyContent);
+            inputRow.insertAdjacentElement('beforeend', transContent);
+            elmContent.insertAdjacentElement('beforeend', inputRow);
+
+            // DB登録用隠しアイテム
+            elmContent.insertAdjacentHTML('beforeend', '<input name="timeworks-id" type="hidden" value="' + item.timeworks_id + '">');
+
+            return elmContent;
+        }
+        // フォーム画面のフッター部分作成
+        function getFormFooter(btnText) {
+            const elmFooter = document.createElement('div');
+            elmFooter.classList.add('dialog-footer');
+            elmFooter.insertAdjacentHTML('beforeend', '<button class="normal-btn frameless" type="button" onclick="closeDialog(\'form-dialog-area\', event)"><span>キャンセル</span></button>');
+            elmFooter.insertAdjacentHTML('beforeend', '<button class="normal-btn ok" type="button" onclick="execUpdateFormData()"><span>' + btnText + '</span></button>');
+            return elmFooter;
+        }
+        // 入力チェック
+        function execFormDataCheck() {
+            let msg = "";
+            const name = document.querySelector('[name="full-name"]');
+            if (name == null || name.value == "") {
+                msg += '\n氏名が入力されていません';
+            }
+            const address = document.querySelector('[name="full-address"]');
+            if (address == null || address.value == "") {
+                msg += '\n住所が入力されていません';
+            }
+            const start = document.querySelector('[name="start-time"]');
+            if (start == null || start.value == "") {
+                msg += '\n出勤時刻が入力されていません';
+            }
+            const end = document.querySelector('[name="end-time"]');
+            if (end == null || end.value == "") {
+                msg += '\n退勤時刻が入力されていません';
+            }
+            const startNum = parseTimeToNum(start.value);
+            const endNum = parseTimeToNum(end.value);
+            if (startNum > 0 && endNum > 0 && endNum - startNum < 0) {
+                msg += '\n出勤時刻より退勤時刻が早くなっています';
+            }
+            const hourlyWage = document.querySelector('[name="hourly-wage"]');
+            if (hourlyWage == null || hourlyWage.value == 0) {
+                msg += '\n時給が入力されていません';
+            }
+            if (msg != "") {
+                messageDialog(msg, 'エラー', 'red');
+                return false;
+            }
+            return true;
+        }
+        // 更新処理
+        async function execUpdateFormData() {
+            if (execFormDataCheck() == false) {
+                return;
+            } else {
+                const form = document.getElementById('timeworks-form');
+                const formData = new FormData(form);
+                const id = parseInt(formData.get('timeworks-id'));
+                const formdata = origin?.find(value => { return value.timeworks_id == id });
+                // 氏名
+                const name = formData.get('full-name');
+                formdata.full_name = name;
+                // 住所
+                const address = formData.get('full-address');
+                formdata.full_address = address;
+                // 出勤
+                const start = formData.get('start-time');
+                formdata.comp_start_time = parseTimeToStr(parseTimeToNum(start));
+                // 退勤
+                const end = formData.get('end-time');
+                formdata.comp_end_time = parseTimeToStr(parseTimeToNum(end));
+                // 休憩
+                const breakeStr = formData.get('breake-time');
+                formdata.breake_time = parseTimeToStr(parseTimeToNum(breakeStr));
+                // 時給
+                const hourlyWage = formData.get('hourly-wage');
+                formdata.hourly_wage = parseInt(hourlyWage);
+                // 非課税交通費
+                const transcost = formData.get('trans-cost');
+                const transCost = Math.ceil((transcost == null || transcost == "") ? 0: parseInt(transcost));
+                formdata.trans_cost = transCost;
+                // ダイアログを閉じる
+                closeDialog('form-dialog-area');
+                // 画面更新
+                changeTimeworksList();
+            }
+        }
+       // プリント処理
+       async function execPrint(self) {
+            // プリントボタンの親要素（tablelist-container）を取得する
+            const parent = self.closest('.table-container');
+            // プリント用のSQL文を取得する（選択されていなければ[NULL]が返る）
+            const ids = getAllSelectedInCheckbox(parent);
+            if (ids.length == 0) {
+                messageDialog('選択されていません', 'エラー', 'red');
+                return false;
+            }
+            items = [];
+            for (let i = 0; i < ids.length; i++) {
+                let formdata = origin?.find(value => { return value.timeworks_id == ids[i].id });
+
+                // 勤務時間
+                const workTimeStr = resultSubtractingTime(parseTimeToStr(parseTimeToNum(formdata.comp_start_time)), parseTimeToStr(parseTimeToNum(formdata.comp_end_time)));
+                formdata.work_time = workTimeStr;
+
+                const workTimeNum = parseTimeToNum(workTimeStr);
+                formdata.work_time_num = workTimeNum;
+                const breakeNum = parseTimeToNum(formdata.breake_time);
+                formdata.breake_time_num = breakeNum;
+
+                // 実働時間単位
+                const realWorkTimeNum = Math.ceil((workTimeNum - breakeNum) * 100) / 100;
+                formdata.real_work_time_unit = realWorkTimeNum;
+                // 実働時間
+                const realWorkTimeStr = parseTimeToStr(realWorkTimeNum);
+                formdata.real_work_time = realWorkTimeStr;
+                // 時間外時間単位
+                const overtime = (realWorkTimeNum - 8) < 0 ? 0: realWorkTimeNum - 8;
+                const overtimeNum = Math.ceil(overtime * 100) / 100;
+                formdata.overtime_unit = overtimeNum;
+                // 時間外
+                const overtimeStr = parseTimeToStr(overtimeNum);
+                formdata.overtime = overtimeStr;
+
+                const startNightTime = parseTimeToNum("22:00");
+                const endNum = parseTimeToNum(formdata.comp_end_time);
+
+                // 深夜時間単位
+                const nighttime = endNum - startNightTime <= 0 ? 0: endNum - startNightTime;
+                const nighttimeNum = Math.ceil(nighttime * 100) / 100;
+                formdata.nighttime_unit = nighttimeNum;
+                // 深夜時間
+                const nighttimeStr = parseTimeToStr(nighttimeNum);
+                formdata.nighttime = nighttimeStr;
+                // 実働基本給
+                const realtimePay = Math.ceil(realWorkTimeNum * formdata.hourly_wage);
+                formdata.realtime_pay = realtimePay;
+                // 時間外手当
+                const overtimePay = Math.ceil((overtimeNum * formdata.hourly_wage) * 0.25);
+                formdata.overtime_pay = overtimePay;
+                // 深夜手当
+                const nighttimePay = Math.ceil((nighttimeNum * formdata.hourly_wage) * 0.25);
+                formdata.nighttime_pay = nighttimePay;
+                // 総額
+                const totalAmount = Math.ceil(realtimePay + overtimePay + nighttimePay);
+                formdata.total_amount = totalAmount;
+                // 源泉
+                const tax = taxlist?.find(value => { return value.start_pay <= totalAmount && totalAmount  <= value.end_pay });
+                const withholdingTax = (tax == null || tax == "") ? 0 : tax.withholding_tax;
+                formdata.wiholding_tax = withholdingTax;
+                // 非課税交通費
+                const transcost = Math.ceil((formdata.trans_cost == null || formdata.trans_cost == "") ? 0: parseInt(formdata.trans_cost));
+                formdata.trans_cost = transcost;
+                // 支給額
+                const payment = Math.ceil(totalAmount - withholdingTax + transcost);
+                formdata.payment = payment;                
+                // // 状態
+                // formdata.state = completeStateCode;
+                // リストに追加
+                items.push(formdata);
+            }   
+            if (items != null){
+                // プリント用画面以外を非表示にする
+                const main = document.querySelector('.normal-main');
+                if (main == null) return;
+                main.classList.add('print');
+                // 印刷用画面作成
+                getDailyPayForm(items);
+                // 印刷処理
+                window.print();
+                // プリント用画面を消す
+                main.classList.remove('print');
+                deleteElements('form-dialog-area');
+                // スピナーを表示する
+                startProcessing();
+                // プリント状態を保存する
+                const data = JSON.stringify(items);
+                const result = await postFetch("/timeworks/print", data, token, 'application/json');
+                // 選択項目でフィルターをかける
+                changeTimeworksList();
+                // スピナーを非表示にする
+                processingEnd();
+                // 現金経費支払いフォームを開く
+                createCashExpensesFormDialog();
+            }
+        }
+
+// // -------------------------------------------------------------------------------------------------------------------------------------- 支払い画面
+//         // 現金経費支払いフォーム画面作成
+//         function createCashExpensesFormDialog() {
+//             // ヘッダー
+//             const elmHeader = getFormHeader("現金経費支払い");
+//             // コンテント
+//             const cash = getCashEntity();
+//             const elmContent = getCashExpensesFormContent(cash);
+//             // フッター
+//             const elmFooter = getCashExpensesFormFooter("支払い")
+//             // ダイアログ作成
+//             const elmForm = document.createElement('div');
+//             elmForm.classList.add('form-dialog');
+//             elmForm.insertAdjacentElement('beforeend', elmHeader);
+//             elmForm.insertAdjacentElement('beforeend', elmContent);
+//             elmForm.insertAdjacentElement('beforeend', elmFooter);
+//             elmForm.querySelector('input[name="payment-employee-code"]').addEventListener('blur', function(e) {
+//                 if (e.target.value == "") {
+//                     const name = document.querySelector('input[name="payment-employee-name"]');
+//                     name.value = "";
+//                     return;
+//                 }
+//                 searchForNameByCode(e);
+//             });
+//             elmForm.querySelector('input[name="payment-employee-code"]').addEventListener('keydown', function (e) {
+//                 if (e.target.value == "") {
+//                     const name = document.querySelector('input[name="payment-employee-name"]');
+//                     name.value = "";
+//                     return;
+//                 }
+//                 if(e.key === 'Enter'){
+//                     e.preventDefault();
+//                     searchForNameByCode(e);
+//                 }
+//             });
+//             const parent = document.getElementById('form-dialog-area');
+//             const elm = document.createElement('div');
+//             elm.classList.add('dialog');
+//             parent.insertAdjacentElement('beforeend', elm);
+//             parent.insertAdjacentElement('beforeend', elmForm);
+//             const code = parent.querySelector('input[name="payment-employee-code"]');
+//             if (code != null) code.focus();
+//         }
+//         // 現金経費支払いフォーム画面のコンテント部分作成
+//         function getCashExpensesFormContent(item) {
+//             const elmContent = document.createElement('form');
+//             elmContent.classList.add('dialog-content', 'cash-expenses');
+//             elmContent.setAttribute('id', 'cash-expenses-form');
+//             // DB登録用隠しアイテム
+//             elmContent.insertAdjacentHTML('beforeend', '<input name="payment-employee-id" type="hidden" value="">');
+//             // 金庫選択ボックス
+//             elmContent.insertAdjacentHTML('beforeend', '<div class="form-parts w60"><label>金庫</label><select name="bank" class="normal-select"></select></div>');
+//             const bankArea = elmContent.querySelector('select[name="bank"]');
+//             createComboBox(bankArea, banklist);
+//             // 支払い担当者
+//             elmContent.insertAdjacentHTML('beforeend', '<div class="input-area"><div class="form-parts w40"><label>コード</label><input name="payment-employee-code" class="normal-input" type="text" inputmode="numeric" pattern="\d*" onfocus="this.select();"></div>' +
+//                                                        '<div class="form-parts"><label>支払い者</label><input name="payment-employee-name" class="normal-input" type="text" disabled></div></div>');
+//             // 出金金額
+//             elmContent.insertAdjacentHTML('beforeend', '<div class="form-parts w30"><label>出金額</label><input name="total-payment" class="normal-input text-right" type="text" value="' + item.payment + '" disabled"></div>');
+
+//             return elmContent;
+//         }
+//         // 現金経費支払いフォーム画面のフッター部分作成
+//         function getCashExpensesFormFooter(btnText) {
+//             const elmFooter = document.createElement('div');
+//             elmFooter.classList.add('dialog-footer');
+//             elmFooter.insertAdjacentHTML('beforeend', '<button class="normal-btn frameless" type="button" onclick="closeDialog(\'form-dialog-area\', event)"><span>キャンセル</span></button>');
+//             elmFooter.insertAdjacentHTML('beforeend', '<button id="payment_btn" class="normal-btn ok" type="button" onclick="execCashExpensesFormData()"><span>' + btnText + '</span></button>');
+//             return elmFooter;
+//         }
+//         // コードから[employee]を取得して、名前を表示
+//         async function searchForNameByCode(e) {
+//             e.preventDefault();
+//             const id = document.querySelector('input[name="payment-employee-id"]');
+//             const code = document.querySelector('input[name="payment-employee-code"]');
+//             const name = document.querySelector('input[name="payment-employee-name"]');
+//             const btn = document.getElementById('payment_btn');
+//             if (id == null || code == null || name == null || btn == null) return;
+//             if (code.value == "" || isNaN(code.value)) {
+//                 id.value = "";
+//                 name.value = "";
+//                 return;
+//             }
+//             // [id=code]に入力されたコードから[employee]を取得して[payment_employee_name]に入力する
+//             const data = "code=" + encodeURIComponent(parseInt(code.value));
+//             const result = await postFetch('/employee/code', data, token, 'application/x-www-form-urlencoded');
+//             entity = await result.json();
+//             if (entity != null && entity.employee_id > 0) {
+//                 id.value = entity.employee_id;
+//                 name.value = entity.full_name;
+//                 btn.focus();
+//                 return;
+//             } else {
+//                 id.value = "";
+//                 code.value = ""
+//                 name.value = "";
+//                 messageDialog("コードが登録されていません", 'エラー', 'red');
+//                 return;
+//             }
+//         }
+        function getCashEntity() {
+            if (items != null){
+                // const emps = items.map(item => ({number:item.employee_id}));
+                // const emplist = Array.from(
+                //     new Map(emps.map((item) => [item.number, item])).values()
+                // );
+                const total = items.reduce((sum, i) => sum + i.payment, 0);
+                const cash = {};
+                cash.payment = total;
+                return cash;
+            }
+        }
+        // 印刷・保存処理
+        async function saveCashExpensesFormData() {
+            if (execCashExpensesFormDataCheck() == false) {
+                return;
+            } else {
+                const empId = document.querySelector('input[name="payment-employee-id"]');
+                if (empId == null) {
+                    messageDialog("支払い者コードが入力してください", 'エラー', 'red');
+                    return;
+                }
+                const bank = document.querySelector('select[name="bank"]');
+                if (bank == null) return;
+                items.forEach(value => {
+                    value.payment_employee_id = empId.value;
+                    value.bank_id = bank.value;
+                });
+                closeDialog('form-dialog-area')
+                // 保存処理
+                const data = JSON.stringify(items);
+                const resultResponse = await postFetch('/timeworks/payment/save', data, token, 'application/json');
+                const result = await resultResponse.json();
+                if (result == 0) {
+                    // 失敗のダイアログを表示する
+                    messageDialog("登録できませんでした", 'エラー', 'red');
+                } else {
+                    // 画面更新
+                    startProcessing();
+                    // 従業員リストの選択アイテムを記憶する
+                    let selectId = 0;
+                    let select = document.getElementById('employee-select');
+                    if (select != null) selectId = select.value;
+                    // 勤怠リストを取得する
+                    await getTableList();
+                    // 従業員リストを作成する
+                    createEmployeeList();
+                    // 記憶した選択アイテムをもとに選択する
+                    select = document.getElementById('employee-select');
+                    if (select != null) select.value = selectId;
+                    // 勤怠リスト作成
+                    changeTimeworksList();
+
+                    processingEnd();
+
+                }
+            }
+        }
+        // // 入力チェック
+        // function execCashExpensesFormDataCheck() {
+        //     let msg = "";
+        //     const code = document.querySelector('input[name="payment-employee-code"]');
+        //     if (code == null || code.value == "" || code.value == "0") {
+        //         msg += '\nコードが入力されていません';
+        //     }
+        //     const pay = document.querySelector('input[name="total-payment"]');
+        //     if (pay == null || pay.value == "" || pay.value == "0") {
+        //         msg += '\n出金額が入力されていません';
+        //     }
+        //     // エラーが一つ以上あればエラーメッセージダイアログを表示する
+        //     if (msg != "") {
+        //         messageDialog(msg, 'エラー', 'red');
+        //         return false;
+        //     }
+        //     return true;
+        // }
+
+// 初期化時の処理 ------------------------------------------------------------------------------------------------------------------------------------
+        // 読み込み時の処理
+        window.addEventListener("load", async () => {
+            // サイドバーを作成する
+            const parents = getParentlist();
+            const childlist = getChildlist();
+            createAccordionSidebar(parents, childlist);
+            // const parents = getHomeParentlist();
+            // createSidebar(parents);
+            // セレクトボックスの値が変更された時の処理を登録
+            document.getElementById('employee-select').addEventListener("change", () => { changeTimeworksList() });
+            document.getElementById('paystate-select').addEventListener("change", () => { changeTimeworksList() });
+            // 日付ボックスを設定
+            execSpecifyPeriod('this-month');
+            // 支払い確定状況リストを作成する
+            createPayStateList();
+            // 画面更新
+            await updateTableList();
+            // 処理が終了したらスピナーを消去する
+            processingEnd();
+        });
+    </script>
+</body>
+
+</html>

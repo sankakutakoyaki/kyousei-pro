@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+<body>
+    <!-- 本体 -->
+    <div class="normal-main" th:fragment="main-fragment(isSidebar)">
+        <div th:replace="~{fragment/main::header-fragment}"></div>
+        <div class="normal-content">
+            <div class="normal-sidebar sp-style" th:if="${isSidebar == false}">
+                <div th:replace="~{fragment/main::sidebar-fragment}"></div>
+            </div>
+            <div class="normal-sidebar" th:unless="${isSidebar == false}">
+                <div th:replace="~{fragment/main::sidebar-fragment}"></div>
+            </div>
+            <div layout:fragment="layout-body"></div>
+        </div>
+        <div id="form-dialog-area"></div>
+        <div id="dialog-area"></div>
+    </div>
+
+    <!-- 本体 -->
+    <div class="normal-main" th:fragment="index-main-fragment(isSidebar)">
+        <div th:replace="~{fragment/main::index-header-fragment}"></div>
+        <div class="normal-content">
+            <div class="normal-sidebar sp-style" th:if="${isSidebar == false}">
+                <div th:replace="~{fragment/main::index-sidebar-fragment}"></div>
+            </div>
+            <div class="normal-sidebar" th:unless="${isSidebar == false}">
+                <div th:replace="~{fragment/main::index-sidebar-fragment}"></div>
+            </div>
+            <div layout:fragment="layout-body"></div>
+        </div>
+        <div id="form-dialog-area"></div>
+        <div id="dialog-area"></div>
+    </div>
+
+    <!-- ヘッダー -->
+    <div class="normal-header" th:fragment="header-fragment">
+        <div th:replace="~{fragment/main::header-menu-fragment}"></div>
+    </div>
+
+    <!-- ヘッダー -->
+    <div class="normal-header" th:fragment="index-header-fragment">
+        <div th:replace="~{fragment/main::index-header-menu-fragment}"></div>
+    </div>
+
+    <!-- サイドバー部分のフラグメント -->
+    <div class="sidebar-content" th:fragment="sidebar-fragment">
+        <button id="menu-close" class="hamburger-btn-close"><img th:src="@{/icons/close.png}"></button>
+        <div id="sidebar-area"></div>
+    </div>
+
+    <!-- インデックスサイドバー部分のフラグメント -->
+    <div class="sidebar-content" th:fragment="index-sidebar-fragment">
+        <button id="menu-close" class="hamburger-btn-close"><img th:src="@{/icons/close.png}"></button>
+        <div id="sidebar-area" class="index"></div>
+    </div>
+
+    <!-- タイトルメニューのフラグメント -->
+    <div class="header-menu" th:fragment="index-header-menu-fragment">
+        <div class="logo-btn pc-style" th:onclick="moveLinkPage('/')"><span>Kyosei</span></div>
+        <div class="sp-style">
+            <button id="menu-open" class="hamburger-btn-open"><img th:src="@{/icons/hamburger.png}"></button>
+        </div>
+        <div class="user-btn">
+            <span class="pc-style" sec:authentication="name"></span>
+            <form class="logout-btn" th:action="@{/logout}" th:method="post">
+                <button type="submit"><img th:src="@{/icons/logout.png}"></button>
+            </form>
+        </div>
+    </div>
+
+    <!-- タイトルメニューのフラグメント -->
+    <div class="header-menu" th:fragment="header-menu-fragment">
+        <div class="logo-btn pc-style" th:onclick="moveLinkPage('/')"><span>Kyosei</span></div>
+        <div class="sp-style">
+            <button id="menu-open" class="hamburger-btn-open"><img th:src="@{/icons/hamburger.png}"></button>
+        </div>
+        <div class="header-title pc-style">
+            <!-- <a th:href="@{/}">ホーム</a> -->
+            <a th:href="@{/sales}">営業</a>
+            <a th:href="@{/personnel}">人事・労務</a>
+            <a th:href="@{/piggy_bank}">経理</a>
+            <a th:href="@{/management}">管理</a>
+            <a th:href="@{/regist}">登録</a>
+            <a th:href="@{/recycle}">リサイクル</a>
+            <a th:href="@{/info}">お知らせ</a>
+            <a th:href="@{/setting}">設定</a>
+        </div>
+        <div class="user-btn">
+            <span class="pc-style" sec:authentication="name"></span>
+            <form class="logout-btn" th:action="@{/logout}" th:method="post">
+                <button type="submit"><img th:src="@{/icons/logout.png}"></button>
+            </form>
+        </div>
+    </div>
+
+    <!-- パンくずリスト -->
+    <nav th:fragment="breadcrumb-fragment(breadcrumbs)">
+        <ul class="breadcrumb">
+            <li th:each="breadcrumb : ${breadcrumbs}"
+                th:classappend="${#strings.isEmpty(breadcrumb.url)} ? 'active' : ''">
+                <a th:unless="${#strings.isEmpty(breadcrumb.url)}" th:href="@{${breadcrumb.url}}"
+                    th:text="${breadcrumb.label}"></a>
+                <strong th:if="${#strings.isEmpty(breadcrumb.url)}" th:text="${breadcrumb.label}"></strong>
+            </li>
+        </ul>
+    </nav>
+
+</body>

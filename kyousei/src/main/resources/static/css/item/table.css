@@ -1,0 +1,286 @@
+@charset "UTF-8";
+
+/******************************************************************************************************* simple */
+
+.simple-table {
+    width: 100%;
+}
+
+.simple-table>tbody {
+    background-color: var(--white);
+}
+
+.simple-table>tbody>tr {
+    display: grid;
+    align-items: center;
+    user-select: none;
+    background-color: var(--white);
+}
+
+.simple-table>tbody>tr {
+    height: 2rem;
+    padding: 0 1rem;
+}
+
+.simple-table-header {
+    border-bottom: 1px solid var(--br);
+    margin-bottom: .5rem;
+}
+
+.simple-table-header>th {
+    justify-self: start;
+}
+
+/******************************************************************************************************* 基本設定 normal */
+
+.normal-table {
+    width: 100%;
+}
+
+.normal-table>tbody {
+    background-color: var(--white);
+}
+
+.normal-table>tbody>tr {
+    display: grid;
+    align-items: center;
+    user-select: none;
+    background-color: var(--white);
+}
+
+.normal-table>tbody>tr {
+    height: 2rem;
+    padding: 0 1rem;
+}
+
+.normal-table-header {
+    border-bottom: 1px solid var(--br);
+    margin-bottom: .5rem;
+}
+
+.normal-table-header>th {
+    justify-self: start;
+}
+
+/******************************************************************************************************* 基本設定 tablelist */
+
+.tablelist-container {
+    position: relative;
+    display: grid;
+    grid-column: 1fr;
+    grid-template-rows: auto auto 1fr auto;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+}
+
+.tablelist-container>main {
+    overflow: auto;
+    height: 100%;
+}
+
+.tablelist-container>header {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr 3rem 3rem 3rem 3rem;
+    align-items: center;
+    padding: .5rem 1rem;
+    /* margin-bottom: 1rem; */
+}
+
+.tablelist-container>footer {
+    padding: 2rem 1rem;
+    justify-self: end;
+}
+
+.tablelist-container .normal-table tr {
+    display: grid;
+    align-items: center;
+    user-select: none;
+    height: 4rem;
+    background-color: var(--white);
+    border-radius: .5rem;
+    margin: 0 1rem;
+}
+
+/* ヘッダーを浮かせる */
+.tablelist-container .normal-table tr[name="tablelist-header"] {
+    position: sticky;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    margin: 0 1rem 1rem 1rem;
+    box-shadow: 0 .3rem .4rem -.2rem var(--shadow);
+    border-radius: 0 0 .5rem .5rem;
+    text-align: left;
+}
+
+.tablelist-container .normal-table tr td {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    line-height: 1.5;
+}
+
+/******************************************************************************************************* チェックセル */
+
+.tablelist-container .normal-table tr td[name="chk-cell"] {
+    padding: 0;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 普段は非表示 */
+.tablelist-container .normal-table tr th[name="chk-cell"]>input {
+    display: none;
+    cursor: var(--cursor);
+}
+
+/* 普段は非表示 */
+.tablelist-container .normal-table tr td[name="chk-cell"]>input {
+    display: none;
+    cursor: var(--cursor);
+}
+
+/* ホバーしたら表示する */
+/* .tablelist-container .normal-table tr:hover th[name="chk-cell"]>input {
+    display: block;
+} */
+
+/* ホバーしたら表示する */
+/* .tablelist-container .normal-table tr:hover td[name="chk-cell"]>input {
+    display: block;
+} */
+
+/* 選択したら表示する */
+.tablelist-container .normal-table tr.selected th[name="chk-cell"]>input {
+    display: block;
+}
+
+/* 選択したら表示する */
+.tablelist-container .normal-table tr.selected td[name="chk-cell"]>input {
+    display: block;
+}
+
+/******************************************************************************************************* 行設定 */
+
+/* 先頭行はラインなし */
+.tablelist-container tr[name="tablelist-header"]+tr[name="data-row"] {
+    border: 0;
+}
+
+/* 下線 */
+.tablelist-container tr[name="data-row"] {
+    border-top: 1px solid var(--line);
+    border-image: linear-gradient(to right, transparent 5%, lightgrey 5%, lightgrey 95%, transparent 95%) 1;
+    margin-top: 2px;
+}
+
+/* ホバ-した時に色を変える */
+/* .tablelist-container tr[name="data-row"]:hover {
+    background-color: var(--hover-bg);
+    border: 0;
+    border-top: 1px solid var(--white);
+} */
+
+/* 選択されたら色を変える */
+.tablelist-container tr[name="data-row"].selected {
+    border-top: 1px solid var(--white);
+    background-color: var(--row-selected);
+}
+
+/* ホバーした時は行の線を消す */
+/* .tablelist-container tr[name="data-row"]:hover+tr[name="data-row"] {
+    border: 0;
+    border-top: 1px solid var(--white);
+} */
+
+/* 選択した時は行の線を消す */
+.tablelist-container tr[name="data-row"].selected+tr[name="data-row"] {
+    border: 0;
+    border-top: 1px solid var(--white);
+}
+
+/* 最後の行には下線を引く */
+.tablelist-container tr[name="data-row"]:last-child {
+    border-bottom: 1px solid var(--br);
+}
+
+/******************************************************************************************************* 共通部品 */
+
+/* td[name="link-cell"]>span:hover {
+    text-decoration: underline solid var(--black);
+    cursor: var(--cursor);
+} */
+
+/******************************************************************************************************* スマホ表示のみ */
+
+@media screen and (max-width:560px) {
+    .tablelist-container>header {
+        /* grid-template-columns: 3rem 1fr 3rem; */
+        grid-template-columns: 1fr 3rem;
+        padding: 1.5rem 1rem;
+    }
+
+    .tablelist-container tr[name="tablelist-header"] {
+        display: none;
+    }
+
+    .tablelist-container tr[name="data-row"] {
+        display: block;
+        position: relative;
+        height: fit-content;
+        padding: 1rem 2rem 1rem 4rem;
+    }
+
+    .tablelist-container tr[name="data-row"] td {
+        display: block;
+    }
+
+    .tablelist-container .normal-table tr td[name="chk-cell"]>input {
+        display: block;
+        position: absolute;
+        left: 1rem;
+        cursor: var(--cursor);
+    }
+}
+
+/******************************************************************************************************* PCとスマホのホバーした時の処理 */
+
+@media (hover: hover) {
+    /* ホバーしたら表示する */
+    .tablelist-container .normal-table tr:hover th[name="chk-cell"]>input {
+        display: block;
+    }
+    /* ホバーしたら表示する */
+    .tablelist-container .normal-table tr:hover td[name="chk-cell"]>input {
+        display: block;
+    }
+    /* ホバ-した時に色を変える */
+    .tablelist-container tr[name="data-row"]:hover {
+        background-color: var(--hover-bg);
+        border: 0;
+        border-top: 1px solid var(--white);
+    }
+    /* ホバーした時は行の線を消す */
+    .tablelist-container tr[name="data-row"]:hover+tr[name="data-row"] {
+        border: 0;
+        border-top: 1px solid var(--white);
+    }
+    td[name="link-cell"]>span:hover {
+        text-decoration: underline solid var(--black);
+        cursor: var(--cursor);
+    }
+}
+@media (hover: none) {
+    /* 普段は非表示 */
+    .tablelist-container .normal-table tr th[name="chk-cell"]>input {
+        display: block;
+        cursor: var(--cursor);
+    }
+    /* 普段は非表示 */
+    .tablelist-container .normal-table tr td[name="chk-cell"]>input {
+        display: block;
+        cursor: var(--cursor);
+    }
+}

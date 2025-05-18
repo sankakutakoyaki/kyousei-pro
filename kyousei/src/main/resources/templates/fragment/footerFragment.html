@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+<body>
+    <!-- フッター部分のフラグメント -->
+    <div class="title-menu footer" th:fragment="footer-fragment">
+        <div th:replace="~{fragment/titleMenuFragment::title-menu-btns-fragment}"></div>
+    </div>
+    
+</body>

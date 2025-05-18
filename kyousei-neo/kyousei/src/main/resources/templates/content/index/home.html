@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{layout/index}">
+
+<head>
+    <title>ホーム</title>
+    <style type="text/css">
+        .input-area {
+            margin-top: 1rem;
+        }
+
+        .input-area.date-area span {
+            width: 5rem;
+            padding: 0 1rem;
+        }
+
+        :is(.sales-area, .material-area, .subject-area) {
+            padding: 1rem;
+            border-radius: .5rem;
+            border: 1px solid var(--br);
+            min-width: 12rem;
+        }
+
+        :is(.sales-area, .material-area, .subject-area) label {
+            margin: 0;
+        }
+
+        :is(.sales-price, .material-price, .subject-number) {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        :is(.sales-goal, .material-goal, .subject-price) {
+            font-size: 1.2rem;
+            color: var(--green);
+            margin-right: 1rem;
+        }
+
+        :is(.sales-rate, .material-rate, .day-number) {
+            font-size: 1.2rem;
+            color: var(--red);
+        }
+
+        .no-accidents-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--red);
+        }
+        /* .input-area.sales-area {
+            margin-top: 2rem;
+        }
+
+        .input-area.material-area {
+            margin-top: 1rem;
+        }
+
+        .input-area.sales-area>.form-parts:not(:last-child),
+        .input-area.material-area>.form-parts:not(:last-child) {
+            width: 10rem;
+            margin-right: 1rem;
+        }
+        .input-area.sales-area>.form-parts:last-child,
+        .input-area.material-area>.form-parts:last-child {
+            width: 7rem;
+        }
+
+        .input-area.sales-area>.form-parts>span,
+        .input-area.material-area>.form-parts>span {
+            height: 3rem;
+            font-size: 1.5rem;
+            font-weight: bold;
+            padding: 0 .5rem;
+            margin-left: .5rem;
+            border-radius: 0 0 0 .3rem;
+        }
+
+        .input-area.sales-area>.form-parts:first-child>label,
+        .input-area.material-area>.form-parts:first-child>label {
+            color: var(--blue);
+            font-weight: bold;
+        }
+        .input-area.sales-area>.form-parts:first-child>span,
+        .input-area.material-area>.form-parts:first-child>span {
+            border-bottom: 2px solid var(--blue);
+            border-left: 2px solid var(--blue);
+            color: var(--blue);
+        }
+
+        .input-area.sales-area>.form-parts:nth-child(2)>label,
+        .input-area.material-area>.form-parts:nth-child(2)>label {
+            color: var(--green);
+            font-weight: bold;
+        }
+        .input-area.sales-area>.form-parts:nth-child(2)>span,
+        .input-area.material-area>.form-parts:nth-child(2)>span {
+            border-bottom: 2px solid var(--green);
+            border-left: 2px solid var(--green);
+            color: var(--green);
+        }
+
+        .input-area.sales-area>.form-parts:last-child>label,
+        .input-area.material-area>.form-parts:last-child>label {
+            color: var(--red);
+            font-weight: bold;
+        }
+        .input-area.sales-area>.form-parts:last-child>span,
+        .input-area.material-area>.form-parts:last-child>span {
+            border-bottom: 2px solid var(--red);
+            border-left: 2px solid var(--red);
+            color: var(--red);
+        } */
+
+        @media screen and (max-width:1240px) {}
+
+        @media screen and (max-width:560px) {
+            .input-area.date-area,
+            .input-area.date-area>.input-area {
+                width: 100%;
+                display: flex;
+            }
+            .input-area.date-area span {
+                width: auto;
+            }
+            :is(.sales-area, .material-area, .subject-area)>.form-parts {
+                width: 100%;
+            }
+            :is(.sales-area, .material-area, .subject-area) .input-area.separate {
+                display: flex;
+            }
+        }
+    </style>
+</head>
+
+<body layout:fragment="layout-body">
+    <div class="normal-body">
+        <!-- <h1>プッシュ通知デモ</h1>
+        <form id="push-form" style="width: 15rem;">
+            <input type="text" class="normal-input" id="push-msg-text">
+            <input type="button" class="normal-input" style="margin-top: .5rem;" onclick="sendSubscriptionToServer()" value="プッシュ通知を送る">
+            <input type="button" class="normal-input" style="margin-top: .5rem;" onclick="unsubscribeButtonHandler()" value="登録情報を削除する">
+            <input type="button" class="normal-input" style="margin-top: .5rem;" onclick="showNotification()" id="notifyButton" value="即時通知">
+            <input type="button" class="normal-input" style="margin-top: .5rem;" id="permmisionButton" value="通知のリクエスト">
+        </form> -->
+        <div class="input-area date-area">
+            <div class="input-area">
+                <button name="start-btn" class="normal-btn" type="button" onclick="execTimeworks('start')"><span>出勤</span></button>
+                <span>08:30</span>
+            </div>
+            <div class="input-area">
+                <button name="end-btn" class="normal-btn" type="button" onclick="execTimeworks('end')"><span>退勤</span></button>
+                <span>20:30</span>
+            </div>
+        </div>
+        <div class="input-area">
+            <div class="input-area sales-area">
+                <div class="form-parts">
+                    <label>月間売上</label>
+                    <div class="form-parts">
+                        <span class="sales-price text-center">100,000</span>
+                        <div class="input-area separate">
+                            <div class="form-parts">
+                                <label>目標</label>
+                                <span class="sales-goal">1,000,000</span>
+                            </div>
+                            <div class="form-parts">
+                                <label>達成率</label>
+                                <span class="sales-rate">10%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="input-area material-area">
+                <div class="form-parts">
+                    <label>部材売上</label>
+                    <div class="form-parts">
+                        <span class="material-price text-center">5,000</span>
+                        <div class="input-area separate">
+                            <div class="form-parts">
+                                <label>目標</label>
+                                <span class="material-goal">100,000</span>
+                            </div>
+                            <div class="form-parts">
+                                <label>達成率</label>
+                                <span class="material-rate">5%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="input-area subject-area">
+                <div class="form-parts">
+                    <label>月間件数</label>
+                    <div class="form-parts">
+                        <span class="subject-number text-center">25</span>
+                        <div class="input-area separate">
+                            <div class="form-parts">
+                                <label>1件単価</label>
+                                <span class="subject-price">4,000</span>
+                            </div>
+                            <div class="form-parts">
+                                <label>日数</label>
+                                <span class="day-number">2日</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="input-area no-accidents-area">
+            <p>無事故無違反</p><p class="no-accidents-number">100</p><p>日目</p>
+        </div>
+
+
+        <!-- <div class="form-parts">
+            <label>業種別</label>
+            <ul>
+                <li><span>関西ケーズデンキ</span><span>10,000円</span></li>
+                <li><span>かんでんEハウス</span></li>
+                <li><span>ジャパネットたかた</span></li>
+                <li><spna>コネクスト</spna></li>
+                <li><span>ナサホーム</span></li>
+                <li><span>高島屋</span></li>
+            </ul>
+        </div> -->
+
+        <div class="index-btn-container">
+            <!-- <div class="index-btn" th:onclick="moveLinkPage('/info')" sec:authorize="hasAnyAuthority('APPROLE_admin', 'APPROLE_master')"> -->
+            <!-- <div class="index-btn" th:onclick="moveLinkPage('/info')"></div>
+                <img th:src="@{/icons/info.png}"><span>お知らせ</span>
+            </div> -->
+        </div>
+    </div>
+    <script th:src="@{/js/default.js}"></script>
+    <script th:src="@{/js/push.js}"></script>
+    <script th:src="@{/js/timeworks.js}"></script>
+    <script type="text/JavaScript" th:inline="JavaScript">
+        const token = /*[[${_csrf.token}]]*/;
+        const username = /*[[${username}]]*/;
+        const employeeId = /*[[${employeeId}]]*/;
+        let entity = {};
+
+        async function setTimeworksEntity() {
+            const data = "id=" + encodeURIComponent(parseInt(employeeId));
+            const url = '/timeworks/get/today/id';
+            const contentType = 'application/x-www-form-urlencoded';
+            // [timeworks]を取得
+            const result = await postFetch(url, data, token, contentType);
+            return await result.json();
+        }
+        async function execTimeworks(timeCategory) {
+            startProcessing();
+
+            // entity = await setTimeworksEntity();
+            const data = "id=" + encodeURIComponent(parseInt(employeeId));
+            const url = '/timeworks/get/today/id';
+            const contentType = 'application/x-www-form-urlencoded';
+            // [timeworks]を取得
+            const result = await postFetch(url, data, token, contentType);
+            entity = await result.json();
+            // return await result.json();
+            if (entity.work_date == null) entity.work_date = new Date();
+            const resultInt = await setTimeworks(timeCategory);
+
+            if (resultInt > 0) {
+                const elm = document.getElementById(timeCategory);
+                if (elm == null) return;
+                elm.textContent = time;
+            }
+
+            // const entity = await getTimeworks();
+            // const time = getNowHyphen();
+            // const position = await getLoacation();
+            // entity.user_name = username;
+            // // entity.employee_id = employeeId;
+            // if (timeCategory == "start") {
+            //     entity.start_time = time;
+            //     entity.comp_start_time = time;
+            //     entity.start_latitude = position.coords.latitude;
+            //     entity.start_longitude = position.coords.longitude;
+            // } else if (timeCategory == "end") {
+            //     entity.end_time = time;
+            //     entity.comp_end_time = time;
+            //     entity.end_latitude = position.coords.latitude;
+            //     entity.end_longitude = position.coords.longitude;
+            // }
+            // const data = JSON.stringify(entity);
+            // const url = '/timeworks/regist/today';
+            // const contentType = 'application/json';
+            // const result = await postFetch(url, data, token, contentType);
+
+            processingEnd();
+        }
+        function updateDisplay() {
+
+        }
+        // サイドバー作成
+        const parents = getHomeParentlist();
+        createSidebar(parents);
+
+        window.addEventListener("load", async () => {
+            if ('serviceWorker' in navigator && 'PushManager' in window) {
+                registerServiceWorker().catch(err => console.error('Error during registration:', err));
+            } else {
+                console.warn('Push messaging is not supported in this browser.');
+            }
+        });
+    </script>
+</body>
+
+</html>

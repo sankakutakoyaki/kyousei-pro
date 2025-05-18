@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{layout/index}">
+
+<head>
+    <title>人事</title>
+</head>
+
+<body layout:fragment="layout-body">
+    <!-- <div class="normal-body index nosidebar"> -->
+    <div class="normal-body">
+        <div class="index-btn-container">
+            <div class="index-btn" th:onclick="moveLinkPage('/timeworks')">
+                <img th:src="@{/icons/clock2.png}"><span>打刻一覧</span>
+            </div>
+            <div class="index-btn" th:onclick="moveLinkPage('/timeworks/dailypay')">
+                <img th:src="@{/icons/payment.png}"><span>日払い</span>
+            </div>
+            <!-- <div class="index-btn" th:onclick="moveLinkPage('/parttime')">
+                <img th:src="@{/icons/parttime.png}"><span>アルバイト</span>
+            </div> -->
+        </div>
+    </div>
+    <script th:src="@{/js/default.js}"></script>
+    <script type="text/JavaScript" th:inline="JavaScript">
+        // サイドバー作成
+        const parents = getHomeParentlist();
+        createSidebar(parents);
+
+        window.addEventListener("load", () => {
+            // 読み込み時のjavascriptを書く
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,viewport-fit=cover">
+
+<head>
+    <meta charset="UTF-8">
+    <link th:href="@{/css/tablelist.css}" rel="stylesheet" type="text/css">
+    <link th:href="@{/manifest.json}" rel="manifest" crossorigin="use-credentials">
+    <title>お知らせ</title>
+    <style type="text/css">
+        /* .normal-body {
+            max-width: 30rem;
+            justify-content: center;
+        } */
+        /* .table-container {
+            padding: 1rem;
+            width: 45rem;
+            grid-template-rows: auto auto 1fr;
+        } */
+        .normal-btn {
+            margin-top: .5rem;
+            width: 100%;
+        }
+        #push-msg-text {
+            height: 20rem;
+        }
+        #scroll-area {
+            justify-items: center;
+        }
+        .info-title {
+            padding: 0 1rem;
+            font-weight: bold;
+            white-space: pre-wrap; /* textareaの改行を表示させる */
+        }
+        .info-body-area {
+            background-color: var(--light-yellow);
+        }
+        .info-body {
+            padding: 1rem;
+            white-space: pre-wrap; /* textareaの改行を表示させる */
+        }
+        .info-footer-area {
+            display: flex;
+            justify-content: space-between;
+            padding: 0 1rem;
+        }
+        .info-footer-btn {
+            display: flex;
+        }
+        .info-footer {
+            text-align: right;
+            padding: 0 1rem;
+        }
+        .info-content {
+            width: 25rem;
+            border: 1px solid var(--br);
+            border-radius: .5rem;
+            margin-bottom: 2rem;
+        }
+        .form-parts {
+            margin-bottom: .5rem;
+        }
+        @media screen and (max-width:1240px) {}
+
+        @media screen and (max-width:560px) {
+            /* .table-container {
+                width: 100%;
+            } */
+            #push-ttitle-text {
+                height: 7rem;
+            }
+            .info-content {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="normal-main">
+        <div th:replace="~{fragment/main::header-fragment}"></div>
+        <div class="normal-content hamburger-close">
+            <!-- サイドバー -->
+            <div class="normal-sidebar sp-style">
+                <div class="sidebar-content">
+                    <button id="menu-close" class="hamburger-btn-close"><img src="/icons/close.png"></button>
+                    <div id="sidebar-area"></div>
+                </div>
+            </div>
+            <div class="normal-body">
+                <!-- パンくずリスト -->
+                <div th:with="breadcrumbs=${ { {url:'/' ,label:'ホーム'},{url:'', label:'お知らせ'} } }">
+                    <div th:replace="~{fragment/main::breadcrumb-fragment(${breadcrumbs})}"></div>
+                </div>
+                <!-- コンテンツ -->
+                <main id="scroll-area">
+                    <!-- <header class="input-area"> -->
+                        <!-- <div class="search-box w100">
+                            <input id="search-box" type="search" placeholder="検索"><img title="検索" src="/icons/search.png" onclick="searchFunc()">
+                        </div> -->
+                        <!-- <div class="kebab-parts"> -->
+                            <!-- ケバブボタン -->
+                            <!-- <div id="kebab-btn" class="img-btn sp-style" onclick="openKebabDialog(this)"><img title="メニュー" th:src="@{/icons/kebab_menu.png}"></div> -->
+                            <!-- <div class="img-btns kebab"> -->
+                                <!-- 作成ボタン -->
+                                <!-- <div class="img-btn" onclick="execCreate()"><img title="作成" src="/icons/edit.png"><span>作成</span></div> -->
+                                <!-- 削除ボタン -->
+                                <!-- <div class="img-btn" onclick="execDelete()"><img title="削除" src="/icons/dust.png"><span>削除</span></div> -->
+                                <!-- 閉じるボタン -->
+                                <!-- <div class="img-btn sp-style" onclick="closeKebabDialog(this)"><img title="閉じる" src="/icons/close-b.png"><span>閉じる</span></div> -->
+                            <!-- </div> -->
+                        <!-- </div> -->
+                    <!-- </header> -->
+
+                    <div id="info-item1" class="info-content">
+                        <div class="info-title-area">
+                            <p class="info-title">新しい取引先の紹介</p>
+                        </div>
+                        <div class="info-body-area">
+                            <p class="info-body">弊社は本日「亀山社中」と取引を開始いたしました。亀山社中は、海運業や貿易業のほか、軍事業務や人材の手配など幅広い機能を提供する会社です。代表取締役の坂本龍馬さん(31)のインタビューはこちら。</p>
+                        </div>
+                        <div class="info-footer-area">
+                            <div class="info-footer-btn">
+                                <button class="img-btn" onclick="execEdit()">編集</button>
+                                <button class="img-btn" onclick="execDelete()">削除</button>
+                            </div>
+                            <p class="info-footer">作成日 2025/4/10</p>
+                        </div>
+                    </div>
+
+                    <div id="info-item2" class="info-content">
+                        <div class="info-title-area">
+                            <p class="info-title">【速報！】今川義元討たれる！</p>
+                        </div>
+                        <div class="info-body-area">
+                            <p class="info-body">今川義元(42)が桶狭間で織田信長(27)にボコられました。関係者筋の情報によると、信長はわずか数千の兵で、今川義元の2万5千人の軍勢に立ち向かい勝利したとのこと。今後の動向に注意が必要です。</p>
+                        </div>
+                        <div class="info-footer-area">
+                            <div class="info-footer-btn">
+                                <button class="img-btn" onclick="execEdit()">編集</button>
+                                <button class="img-btn" onclick="execDelete()">削除</button>
+                            </div>
+                            <p class="info-footer">作成日 2025/4/8</p>
+                        </div>
+                    </div>
+
+                </main>
+                <footer id="footer-text" class="pc-style"></footer>
+            </div>
+        </div>
+        <script th:src="@{/js/default.js}"></script>
+        <script th:src="@{/js/push.js}"></script>
+        <script type="text/JavaScript" th:inline="JavaScript">
+            const token = /*[[${_csrf.token}]]*/;
+            const username = /*[[${username}]]*/;
+
+// 初期化時の処理 ------------------------------------------------------------------------------------------------------------------------------------
+
+            // サイドバー作成
+            const parents = getHomeParentlist();
+            createSidebar(parents);
+
+            // 読み込み時の処理
+            window.addEventListener("load", async () => {
+
+            });
+        </script>
+
+        <div id="form-dialog-area" class="none">
+            <!-- <h1>お知らせ</h1> -->
+            <div class="form-parts">
+                <label>タイトルを入力 ※ 40文字まで</label>
+                <textarea id="push-title-text" maxlength="40" required></textarea>
+                </div>
+                <div class="form-parts">
+                <label>本文を入力</label>
+                <textarea id="push-msg-text" required></textarea>
+                </div>
+
+            <button class="normal-btn ok" type="button" onclick="sendSubscriptionToServer()">
+                <span>プッシュ通知を送る</span>
+            </button>
+            <button class="normal-btn frameless" type="button" onclick="unsubscribeButtonHandler()" sec:authorize="hasAnyAuthority('APPROLE_admin', 'APPROLE_master')">
+                <span>購読情報を削除する</span>
+            </button>
+            <button class="normal-btn frameless" type="button" onclick="registerServiceWorker()" sec:authorize="hasAnyAuthority('APPROLE_admin', 'APPROLE_master')">
+                <span>購読情報を登録する</span>
+            </button>
+            <input type="hidden" class="normal-input" onclick="showNotification()" id="notifyButton" value="即時通知">
+            <input type="hidden" class="normal-input" id="permmisionButton" value="通知のリクエスト">
+        </div>
+        <div id="dialog-area"></div>
+
+    </div>
+</body>
+
+</html>

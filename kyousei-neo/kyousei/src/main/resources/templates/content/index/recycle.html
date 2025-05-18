@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{layout/index}">
+
+<head>
+    <title>登録</title>
+</head>
+
+<body layout:fragment="layout-body">
+    <div class="normal-body">
+        <div class="index-btn-container">
+            <!-- <div class="index-btn" th:onclick="moveLinkPage('/recycle/arrival')">
+                <img th:src="@{/icons/arrival.png}"><span>入荷</span>
+            </div> -->
+            <div class="index-btn" th:onclick="moveLinkPage('/recycle/list')">
+                <img th:src="@{/icons/booklist.png}"><span>一覧</span>
+            </div>
+            <div class="index-btn" th:onclick="moveLinkPage('/recycle/regist')">
+                <img th:src="@{/icons/recycle_dust.png}"><span>使用</span>
+            </div>
+            <div class="index-btn" th:onclick="moveLinkPage('/recycle/delivery')">
+                <img th:src="@{/icons/good.png}"><span>引渡</span>
+            </div>
+            <div class="index-btn" th:onclick="moveLinkPage('/recycle/forward')">
+                <img th:src="@{/icons/recycle_truck.png}"><span>発送</span>
+            </div>
+            <div class="index-btn" th:onclick="moveLinkPage('/recycle/loss')">
+                <img th:src="@{/icons/ban.png}"><span>ロス</span>
+            </div>
+        </div>
+    </div>
+    <script th:src="@{/js/default.js}"></script>
+    <script type="text/JavaScript" th:inline="JavaScript">
+        // サイドバー作成
+        const parents = getHomeParentlist();
+        createSidebar(parents);
+        // const parents = getParentlist();
+        // const key = parents.find(item => ( item.id == 6 ));
+        // if (key != null) key.id = 0;
+        // const childlist = getChildlist();
+        // createAccordionSidebar(parents, childlist);
+
+        window.addEventListener("load", () => {
+            // 読み込み時のjavascriptを書く
+        });
+    </script>
+</body>
+
+</html>

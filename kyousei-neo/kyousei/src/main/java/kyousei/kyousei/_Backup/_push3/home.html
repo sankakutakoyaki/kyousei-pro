@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{layout/index}">
+
+<head>
+    <title>ホーム</title>
+</head>
+
+<body layout:fragment="layout-body">
+    <div class="normal-body">
+        <h1>プッシュ通知デモ</h1>
+        <button id="subscribe">通知を購読</button>
+        <form id="push-form">
+            <label for="token">Device Token:</label>
+            <input type="text" id="token" th:name="_csrf" th:value="${_csrf.token}"><br><br>
+            
+            <!-- <label for="title">Title:</label>
+            <input type="text" id="title" name="title" required><br><br>
+    
+            <label for="body">Body:</label>
+            <input type="text" id="body" name="body" required><br><br> -->
+    
+            <input type="button" onclick="subscribeUser()" value="Send Notification">
+        </form>
+        <div class="index-btn-container">
+
+        </div>
+    </div>
+    <script th:src="@{/js/default.js}"></script>
+    <script type="text/JavaScript" th:inline="JavaScript">
+        // サイドバー作成
+        const parents = getHomeParentlist();
+        createSidebar(parents);
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js')
+                .then(function(registration) {
+                    console.log('Service Worker registered with scope:', registration.scope);
+                })
+                .catch(function(error) {
+                    console.error('Service Worker registration failed:', error);
+                });
+        }
+
+        function askPermission() {
+            return new Promise(function(resolve, reject) {
+                const permissionResult = Notification.requestPermission(function(result) {
+                    resolve(result);
+                });
+
+                if (permissionResult) {
+                    permissionResult.then(resolve, reject);
+                }
+            }).then(function(permissionResult) {
+                if (permissionResult !== 'granted') {
+                    throw new Error('Push notifications permission denied');
+                }
+            });
+        }
+
+        function subscribeUser() {
+            navigator.serviceWorker.ready.then(function(registration) {
+                return registration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: urlB64ToUint8Array('BDtSdJ-595-GLPukMIt7t9HGcfgWQWQsMcpKTPWUGqOdfo4vGG9pIM4jAyOulTGsrioOd2lcoHAY8cK90_ZETxA')
+                });
+            }).then(function(subscription) {
+                console.log('User is subscribed:', subscription);
+
+                // サーバーへ送信
+                fetch('/push/send', {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': /*[[${_csrf.token}]]*/, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        endpoint: subscription.endpoint,
+                        p256dh: btoa(String.fromCharCode(...new Uint8Array(subscription.getKey('p256dh')))),
+                        auth: btoa(String.fromCharCode(...new Uint8Array(subscription.getKey('auth'))))
+                    })
+                });
+            }).catch(function(error) {
+                console.error('Subscription failed:', error);
+            });
+        }
+
+        // function pushSubscribe() {
+        //     if ('serviceWorker' in navigator && 'PushManager' in window) {
+        //         navigator.serviceWorker.register('/sw.js')
+        //             .then(function(registration) {
+        //             console.log('Service Worker registered with scope:', registration.scope);
+        //         })
+        //         registration.pushManager.subscribe({
+        //             userVisibleOnly: true,
+        //             applicationServerKey: urlB64ToUint8Array('BDtSdJ-595-GLPukMIt7t9HGcfgWQWQsMcpKTPWUGqOdfo4vGG9pIM4jAyOulTGsrioOd2lcoHAY8cK90_ZETxA')
+        //         })
+        //         .then(function(subscription) {
+        //             console.log('Subscription object:', subscription);
+
+        //             // keysプロパティがない場合、getKeyを使用して取得する
+        //             const p256dh = subscription.getKey('p256dh') ? subscription.getKey('p256dh') : '';
+        //             const auth = subscription.getKey('auth') ? subscription.getKey('auth') : '';
+
+        //             const form = document.getElementById('push-form');
+        //             const formData = new FormData(form);
+        //             subscription.title = formData.get('title');
+        //             subscription.body = formData.get('body');
+        //             // サーバーにサブスクリプション情報を送信
+        //             fetch('/push/subscribe', {
+        //                 method: 'POST',
+        //                 headers: {
+        //                     'X-CSRF-TOKEN': /*[[${_csrf.token}]]*/,
+        //                     'Content-Type': 'application/json'
+        //                 },
+        //                 body: JSON.stringify({
+        //                     endpoint: subscription.endpoint,
+        //                     p256dh: subscription.getKey('p256dh'),
+        //                     auth: subscription.getKey('auth')
+        //                 })
+        //             })
+        //             .then(response => response.json())
+        //             .then(data => {
+        //                 console.log('Subscription data sent successfully:', data);
+        //             })
+        //             .catch(error => {
+        //                 console.error('Error sending subscription data to the server:', error);
+        //             });
+        //         })
+        //         .catch(function(error) {
+        //             console.error('Service Worker registration failed:', error);
+        //         });
+        //     }
+        // }
+
+        function urlB64ToUint8Array(base64String) {
+            const padding = '='.repeat((4 - base64String.length % 4) % 4);
+            const base64 = (base64String + padding)
+                .replace(/-/g, '+')
+                .replace(/_/g, '/');
+
+            const rawData = window.atob(base64);
+            const outputArray = new Uint8Array(rawData.length);
+
+            for (let i = 0; i < rawData.length; ++i) {
+                outputArray[i] = rawData.charCodeAt(i);
+            }
+            return outputArray;
+        }
+
+        window.addEventListener("load", () => {
+
+        });
+    </script>
+</body>
+
+</html>

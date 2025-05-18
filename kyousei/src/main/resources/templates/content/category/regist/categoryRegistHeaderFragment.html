@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns="http://www.thymeleaf.org">
+
+<body>
+    <!-- 登録画面リスト用ヘッダー -->
+    <header class="categoryregist-header" th:fragment="regist-header-fragment">
+
+        <!-- 項目選択ボックス -->
+        <div class="ct2" id="categoryregist-header"></div>
+
+        <!-- 保存ボタン -->
+        <button name="save-btn" class="normal-btn ok" type="button" onclick="execSaveCategoryRegist()">
+            <span>保存</span>
+        </button>
+
+        <!-- リセットボタン -->
+        <button name="cancel-btn" class="normal-btn cancel" type="button" onclick="execResetCategoryRegist()">
+            <span>リセット</span>
+        </button>
+
+    </header>
+
+</body>
+
+</html>

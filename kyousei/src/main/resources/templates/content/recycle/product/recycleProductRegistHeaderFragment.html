@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns="http://www.thymeleaf.org">
+
+<body>
+    <!-- 登録画面リスト用ヘッダー -->
+    <header th:fragment="regist-header-fragment">
+        
+        <p class="ct2 pc-style">略称</p>
+        <p class="sp-style header-label">略称</p>
+
+        <!-- 項目選択ボックス -->
+        <div id="registlist-header"></div>
+        <!-- <div name="add-img-btn" class="img-btn sp-style" onclick="execAddRecycleRegist()">
+            <img title="追加" src="/icons/add.png">
+        </div> -->
+
+        <!-- 保存ボタン -->
+        <button name="save-btn" class="normal-btn ok pc-style" type="button" onclick="execSaveRecycleRegist()">
+            <span>保存</span>
+        </button>
+
+        <!-- リセットボタン -->
+        <button name="cancel-btn" class="normal-btn cancel pc-style" type="button" onclick="execResetRegistList()">
+            <span>リセット</span>
+        </button>
+
+    </header>
+
+</body>
+
+</html>

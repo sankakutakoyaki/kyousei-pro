@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+    layout:decorate="~{content/recycle/list/recycleListLayout}">
+
+<body>
+    <div class="normal-body recycle" layout:fragment="layout-body"
+        th:with="breadcrumbs=${ { {url:'/',label:'ホーム'},{url:'/recycle', label:'リサイクル'},{url:'', label:'一覧'} } }">
+        <div th:replace="~{content/recycle/list/recycleListScreen::recycleList-screen(${breadcrumbs})}"></div>
+    </div>
+</body>
+
+</html>

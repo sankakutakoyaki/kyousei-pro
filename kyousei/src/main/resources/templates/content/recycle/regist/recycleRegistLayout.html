@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,viewport-fit=cover">
+
+<head>
+    <meta charset="UTF-8">
+    <link th:href="@{/css/recycle.css}" rel="stylesheet" type="text/css">
+    <style type="text/css">
+        /* .recycleregist-container {
+            min-width: 50rem;
+            max-width: 80rem;
+        } */
+
+        /* .recycleregist-content {
+            height: 100%;
+            overflow: hidden;
+        } */
+        .tablelist-container>header {
+            grid-template-columns: 1fr;
+        }
+
+        .recycleregist-inputs>.recycleregist-input {
+            display: grid;
+            gap: .5rem;
+            align-items: end;
+            padding: 1rem;
+            grid-template-columns: 11rem 11rem 11rem 12rem 4rem 1fr;
+        }
+
+        .tablelist-container.recycle {
+            /* margin-top: 1rem; */
+            min-width: 50rem;
+            max-width: 80rem;
+        }
+
+        .tablelist-container.recycle tr {
+            grid-template-columns: 3rem 11rem 7rem 1fr 1fr 1fr 3rem;
+        }
+
+        .dialog-content.recycle {
+            width: 30rem;
+            padding: 2rem 3rem 0 1rem;
+        }
+
+        .dialog-content.recycle label {
+            margin: 0;
+        }
+
+        .dialog-content.recycle p {
+            height: 2rem;
+            font-weight: bold;
+        }
+
+        @media screen and (max-width:1240px) {
+            .recyclelist-container {
+                min-width: auto;
+                /* min-width: 50rem; */
+            }
+            .tablelist-container.recycle tr {
+                grid-template-columns: 3rem 10rem 8rem minmax(10rem, 20rem) minmax(12rem, 1fr) 3rem;
+                grid-template-rows: 1fr 1fr;
+                /* grid-template-columns: 3rem 5rem 11rem 1fr 1fr 1fr repeat(3, 5rem) 3rem; */
+            }
+            /* .tablelist-container.recycle tr:first-child {
+                height: 6rem;
+            } */
+            .tablelist-container.recycle tr th {
+                font-weight: normal;
+                font-size: .8rem;
+            }
+            .tablelist-container.recycle tr th:nth-child(1),
+            .tablelist-container.recycle tr td:nth-child(1) {
+                grid-column: 1 / 2;
+                grid-row: 1 / 3;
+            }
+            .tablelist-container.recycle tr th:nth-child(2),
+            .tablelist-container.recycle tr td[name="recycle-number"] {
+                grid-column: 2 / 3;
+                grid-row: 1 / 3;
+            }
+            .tablelist-container.recycle tr th:nth-child(3),
+            .tablelist-container.recycle tr td[name="recycle-usedate"] {
+                grid-column: 3 / 4;
+                grid-row: 1 / 3;
+            }
+            .tablelist-container.recycle tr th:nth-child(4),
+            .tablelist-container.recycle tr td[name="recycle-class"] {
+                grid-column: 4 / 5;
+                grid-row: 1 / 2;
+                align-self: end;
+            }
+            .tablelist-container.recycle tr th:nth-child(5),
+            .tablelist-container.recycle tr td[name="recycle-maker"] {
+                grid-column: 4 / 5;
+                grid-row: 2 / 3;
+                align-self: start;
+            }
+            .tablelist-container.recycle tr th:nth-child(6),
+            .tablelist-container.recycle tr td[name="recycle-shipper"] {
+                grid-column: 5 / 6;
+                grid-row: 1 / 3;
+            }
+        }
+
+        @media screen and (max-width:560px) {
+            .tablelist-container.recycle {
+                min-width: 100%;
+                max-width: 100%;
+            }
+            .tablelist-container header {
+                padding: 0 1rem 1rem 1rem;
+            }
+            .recycleregist-inputs>.recycleregist-input {
+                grid-template-columns: 1fr;
+                position: relative;
+                padding: 0 1rem;
+            }
+            .breadcrumb {
+                margin-left: 1rem;
+            }
+            .tablelist-container>main {
+                border-top: 3px solid var(--line);
+            }
+            .tablelist-container.recycle tr {
+                padding: .5rem 2rem;
+            }
+            /* .tablelist-container.recycle tr[name="tablelist-header"]+tr[name="data-row"] {
+                border-top: 1px solid var(--line);
+                border-image: linear-gradient(to right, transparent 5%, lightgrey 5%, lightgrey 95%, transparent 95%) 1;
+            } */
+            .tablelist-container.recycle tr td[name="recycle-number"] {
+                font-size: 120%;
+                font-weight: bold;
+                color: var(--theme-blue);
+            }
+            .dialog-content.recycle {
+                width: 100%;
+                padding: 0 1rem;
+            }
+            .form-dialog-parts {
+                display: grid;
+                row-gap: 0;
+            }
+            .form-dialog-parts input[type="checkbox"] {
+                display: none;
+            }
+            .form-dialog-parts>label[name="recycle-class-label-form"] {
+                grid-column: 1 / span 3;
+            }
+            .form-dialog-parts>label[name="recycle-maker-label-form"] {
+                grid-column: 1 / span 3;
+            }
+            .form-dialog-parts:has(input[name="recycle-number"]) {
+                position: relative;
+            }
+            /* .recycleregist-inputs>.recycleregist-input input[name="recycle-number"] {
+                padding: 0 3.5rem 0 .8rem;
+            } */
+            /* .recycleregist-input div[name="camera-btn"] {
+                position: absolute;
+                right: 0;
+                top: 2.4rem;
+                width: 3rem;
+            } */
+            /* #interactive {
+                width: 100vw;
+            }
+            #interactive>video {
+                width: 100%;
+            }
+            .drawingBuffer {
+                position: absolute;
+                left: 0;
+            } */
+        }
+    </style>
+</head>
+
+<body>
+    <div th:replace="~{fragment/main::main-fragment-nosidebar}"></div>
+
+    <script th:src="@{/js/default.js}"></script>
+    <script th:src="@{/js/dialog.js}"></script>
+    <script th:src="@{/js/list.js}"></script>
+    <script th:src="@{/js/check.js}"></script>
+    <script th:src="@{/js/combo.js}"></script>
+    <script th:src="@{/js/recycle.js}"></script>
+    <!-- <script th:src="@{https://cdn.jsdelivr.net/npm/jsqr@latest/dist/jsQR.min.js}"></script> -->
+    <script type="text/javascript" src="https://serratus.github.io/quaggaJS/examples/js/quagga.min.js"></script>
+    <script type="text/JavaScript" th:inline="JavaScript">
+        const updateStateCode = /*[[${updateStateCode}]]*/;
+        const createStateCode = /*[[${createStateCode}]]*/;
+        const deleteStateCode = /*[[${deleteStateCode}]]*/;
+        const token = /*[[${_csrf.token}]]*/;
+        const makerlist = /*[[${makerlist}]]*/;
+        const classlist = /*[[${classlist}]]*/;
+        const pricelist = /*[[${pricelist}]]*/;
+        const shipperlist = /*[[${shipperlist}]]*/;
+        let officelist = []
+        let list = /*[[${list}]]*/;
+        const registBtn = document.querySelector('[name="regist-btn"]');
+        const categoryId = /*[[${categoryid}]]*/;
+        
+// ----------------------------------------------------------------------------------------------------------------------------------
+
+        function createRecyleTableListHeader() {
+            const tbl = document.getElementById('tablelist');
+            const names = ['', 'お問合せ管理票番号', '使用日', '品目', '略称', '小売業者'];
+            if (tbl != null) {
+                const newRow = tbl.insertRow();
+                newRow.setAttribute('id', 'row0');
+                newRow.setAttribute('name', 'tablelist-header');
+                names.forEach(function (name) {
+                    let cell = document.createElement('th');
+                    cell.textContent = name;
+                    newRow.insertAdjacentElement('beforeend', cell);
+                });
+            }
+        }
+
+        function createRecyleTableListContent(item) {
+            const tbl = document.getElementById('tablelist');
+            let newRow = tbl.insertRow();
+            newRow.setAttribute('id', 'row' + item.recycle_id);
+            newRow.setAttribute('name', 'data-row');
+            // 調整用セル
+            newRow.insertCell();
+            // リサイクル券番号
+            let numberCell = newRow.insertCell();
+            numberCell.setAttribute('name', 'recycle-number');
+            numberCell.innerHTML += '<span>' + item.recycle_number + '</span>';
+            // 使用日
+            let usedateCell = newRow.insertCell();
+            usedateCell.setAttribute('name', 'recycle-usedate');
+            usedateCell.innerHTML += '<span>' + item.recycle_usedate + '</span>';
+            // 品目
+            let classCell = newRow.insertCell();
+            classCell.setAttribute('name', 'recycle-class');
+            classCell.innerHTML += '<span>' + item.recycle_class_name + '</span>';
+            // メーカー
+            let makerCell = newRow.insertCell();
+            makerCell.setAttribute('name', 'recycle-maker');
+            makerCell.innerHTML += '<span>' + item.recycle_maker_name + '</span>';
+            // 小売業者等名
+            let shipperCell = newRow.insertCell();
+            shipperCell.setAttribute('name', 'recycle-shipper');
+            shipperCell.innerHTML += '<span>' + item.recycle_shipper_name + '</span>';
+        }
+
+        function execRecycleNumberInputChanged(e) {
+            if (e.target.value == "") return;
+
+            if(e.key === 'Enter'){
+                e.preventDefault();
+                afterRecyleNumberInputChanged();
+                // const nextBlock = document.querySelector('[name="regist-btn"]');
+                // if (nextBlock != null) {
+                //     nextBlock.focus(); // 移動させないと番号チェックしないため
+                //     const number = document.querySelector("[name='recycle-number']");
+                //     // const result = await checkNumber(number);
+                //     if (number.value != "") {
+                //         nextBlock.click();
+                //     } else {
+                //         number.focus();
+                //     }
+                // }
+            }
+        }
+
+        function afterRecyleNumberInputChanged() {
+            const nextBlock = document.querySelector('[name="regist-btn"]');
+            const number = document.querySelector("[name='recycle-number']");
+            if (nextBlock != null && number != null) {
+                checkRecycleNumber(number);
+                // number.focus();
+                // nextBlock.focus(); // 移動させないと番号チェックしないため
+                if (number.value != "") {
+                    nextBlock.click();
+                } else {
+                    number.focus();
+                }
+            }
+        }
+
+        // メーカーコード入力時の処理
+        function execRecycleMakerInputChanged(e) {
+            if (e.target.value == "") return;
+
+            if(e.key === 'Enter'){
+                const area = e.target.closest('.form-dialog');
+                if (area == null) return;
+                e.preventDefault();
+                const nextBlock = area.querySelector('[name="add-btn"]');
+                if (nextBlock != null) nextBlock.focus();
+	        }
+        }
+
+        // メーカーコードからフォーカス移動時の処理
+        function execRecycleMakerInputBlur(e) {
+            if (e.target.value == "") return;
+            checkRecycleMakerInput(e);
+        }
+
+        function checkRecycleMakerInput(e) {
+            const parent = e.target.closest('.form-dialog-parts');
+            const name = parent.querySelector('[name="recycle-maker-name-form"]');
+            if (name == null) return;
+            if (makerlist == null || e.target.value.length != 3 || isNaN(e.target.value) == true) {
+                e.target.value = "";
+                name.value = "";
+                return;
+            }
+            const maker = makerlist.find(value => { return value.recycle_maker_code == e.target.value});
+            if (maker != null) {
+                name.value = maker.recycle_maker_name;
+                execRecyclePriceInput(e);
+            } else {
+                e.target.value = "";
+                name.value = "";
+            }
+        }
+
+        // 品目コード入力時の処理
+        function execRecycleClassInputChanged(e) {
+            if (e.target.value == "") return;
+
+            if(e.key === 'Enter'){
+                const area = e.target.closest('.form-dialog');
+                if (area == null) return;
+                e.preventDefault();
+                const nextBlock = area.querySelector('[name="recycle-maker-code-form"]');
+                if (nextBlock != null) nextBlock.focus();
+	        }
+        }
+
+        function execRecycleClassInputBlur(e) {                
+            if (e.target.value == "") return;
+            checkRecycleClassInput(e);
+        }
+
+        function checkRecycleClassInput(e) {
+            const parent = e.target.closest('.form-dialog-parts');
+            const name = parent.querySelector('[name="recycle-class-name-form"]');
+            if (name == null) return;
+            if (classlist == null || e.target.value.length != 2 || isNaN(e.target.value) == true) {
+                e.target.value = "";
+                name.value = "";
+                return;
+            }
+            const item = classlist.find(value => { return value.recycle_class_code == e.target.value});
+            if (item != null) {
+                name.value = item.recycle_class_name;
+                execRecyclePriceInput(e);
+            } else {
+                e.target.value = "";
+                name.value = "";
+            }
+        }
+
+        function execRecyclePriceInput(e) {
+            const area = e.target.closest('.form-dialog');
+            if (area == null) return;
+
+            const makerCode = area.querySelector('[name="recycle-maker-code-form"]');
+            if (makerCode == null) return;
+            const classCode = area.querySelector('[name="recycle-class-code-form"]');
+            if (classCode == null) return;
+            const item = pricelist.find(function(value) { return value.recycle_maker_code == makerCode.value && value.recycle_price_code == classCode.value});
+
+            const priceBox = area.querySelector('[name="recycle-price-form"]');
+            if (priceBox == null) return;
+            const taxBox = area.querySelector('[name="recycle-ex-tax-form"]');
+            if (taxBox == null) return;
+            priceBox.value = item == null ? 0: item.price;
+            taxBox.value = item == null ? 0: item.ex_tax;
+        }
+
+        function execFormDataCheck() {
+            const usedate = document.querySelector("[name='recycle-usedate-form']");
+            if (usedate == null) return;
+            if (usedate.value == "") {
+                createMessageDialog("使用日を入力してください", "エラー", "red");
+                return false;
+            }
+            const makercode = document.querySelector("[name='recycle-maker-code-form']");
+            if (makercode == null) return;
+            if (makercode.value == "") {
+                createMessageDialog("製造業者コードを入力してください", "エラー", "red");
+                return false;
+            }
+            const makername = document.querySelector("[name='recycle-maker-name-form']");
+            if (makername == null) {
+                createMessageDialog("製造業者が入力されていません", "エラー", "red");
+                return false;
+            }
+            const classcode = document.querySelector("[name='recycle-class-code-form']");
+            if (classcode == null) return;
+            if (classcode.value == "") {
+                createMessageDialog("品目コードを入力してください", "エラー", "red");
+                return false;
+            }
+            const classname = document.querySelector("[name='recycle-class-name-form']");
+            if (classname == null) {
+                createMessageDialog("品目が入力されていません", "エラー", "red");
+                return false;
+            }
+        }
+
+        async function execSaveRecycleRegist() {
+            if (execFormDataCheck() == false) {
+                const classCode = document.querySelector('[name="recycle-class-code-form"]');
+                if (classCode != null) classCode.focus();
+                return;
+            } else {
+                const form = document.getElementById('recycle-form');
+                const formData = new FormData(form);
+                const formdata = {};
+                
+                // const id = formData.get('recycle-id-form');
+                // if (id != null) return;
+                // formdata.recycle_id = id;
+                formdata.recycle_number = formData.get('recycle-number-form');
+                formdata.recycle_company_id = formData.get('recycle-company-form');
+                formdata.recycle_office_id = formData.get('recycle-office-form');                  
+                formdata.recycle_usedate = formData.get('recycle-usedate-form');
+                formdata.recycle_deliverydate = "9999-12-31",
+                formdata.recycle_shippingdate = "9999-12-31",
+                formdata.recycle_lossdate = "9999-12-31",
+                formdata.recycle_class_code = formData.get('recycle-class-code-form');
+                formdata.recycle_maker_code = formData.get('recycle-maker-code-form');
+                formdata.recycle_price = formData.get('recycle-price-form');
+                formdata.recycle_ex_tax = formData.get('recycle-ex-tax-form');
+
+                const data = JSON.stringify(formdata);
+                const url = "/recycle/save";
+                const contentType = 'application/json';
+                const resultResponse = await postFetch(url, data, token, contentType);
+                const result = await resultResponse.json();
+                if (result == false) {
+                    failureDialog();
+                    return;
+                }
+
+                const classChk = document.querySelector('[name="chk-recycle-class-form"]');
+                if (classChk == null) return;
+                const makerChk = document.querySelector('[name="chk-recycle-maker-form"]');
+                if (makerChk == null) return;
+                const classChkCodeMemory = document.querySelector(".recycleregist-input [name='recycle-class-code-memory']");
+                if (classChkCodeMemory == null) return;
+                const classChkNameMemory = document.querySelector(".recycleregist-input [name='recycle-class-name-memory']");
+                if (classChkNameMemory == null) return;
+                const makerChkCodeMemory = document.querySelector(".recycleregist-input [name='recycle-maker-code-memory']");
+                if (makerChkCodeMemory == null) return;
+                const makerChkNameMemory = document.querySelector(".recycleregist-input [name='recycle-maker-name-memory']");
+                if (makerChkNameMemory == null) return;
+                const priceMemory = document.querySelector(".recycleregist-input [name='recycle-price-memory']");
+                if (priceMemory == null) return;
+                const taxMemory = document.querySelector(".recycleregist-input [name='recycle-tax-memory']");
+                if (taxMemory == null) return;
+
+                if (classChk.checked == true) {
+                    classChkCodeMemory.value = formData.get('recycle-class-code-form');
+                    classChkNameMemory.value = formData.get('recycle-class-name-form');
+                } else {
+                    classChkCodeMemory.value = "";
+                    classChkNameMemory.value = "";
+                }
+
+                if (makerChk.checked == true) {
+                    makerChkCodeMemory.value = formData.get('recycle-maker-code-form');
+                    makerChkNameMemory.value = formData.get('recycle-maker-name-form');
+                } else {
+                    makerChkCodeMemory.value = "";
+                    makerChkNameMemory.value = "";
+                }
+
+                if (classChk.checked == true && makerChk.checked == true) {
+                    priceMemory.value = formData.get('recycle-price-form');
+                    taxMemory.value = formData.get('recycle-ex-tax-form');
+                } else {
+                    priceMemory.value = "";
+                    taxMemory.value = "";
+                }
+
+                closeDialog('form-dialog-area', event);
+
+                startProcessing();
+
+                list = await getRecycleRegistList();
+                updateRecycleDisplay();
+
+                // const row = document.getElementById('row' + id);
+                // // if (row != null) document.getElementById('tablelist').scrollIntoView(row);
+                // if (row != null) row.scrollIntoView(false);
+                // document.getElementById('tablelist').scrollIntoView(false);
+
+                resetInputBox();
+                // registBtn.disabled = false;
+
+                processingEnd();
+            }
+
+            function resetInputBox() {
+                const number = document.querySelector('[name="recycle-number"]');
+                if (number != null) {
+                    number.value = "";
+                    number.focus();
+                }
+            }
+        }
+
+// --------------------------------------------------------------------------------------------------------------------------------------　フォーム画面
+        // リサイクル番号チェック
+        async function checkNumber(number) {
+            if (number == null) return;
+
+            if (number.value == "") {
+                createMessageDialog("お問合せ管理票番号を入力してください", "エラー", "red");
+                return false;
+            }
+            const recycle = await checkRecycleNumberRegist();
+            // if (recycle == null) {
+            //     createMessageDialog("未登録のリサイクル券です", "エラー", "red");
+            //     number.value = "";
+            //     return null;
+            // }
+            // if (recycle.usedate != "9999-12-31") {
+            if (recycle != null && recycle.recycle_id > 0) {
+                if (recycle.recycle_lossdate != "9999-12-31") {
+                // if (!recycle.lossdate.equals("9999-12-31")) {
+                    createMessageDialog("ロス処理されています", "エラー", "red");
+                } else {
+                    createMessageDialog("すでに登録済みです", "エラー", "red");
+                }
+                number.value = "";
+                return false;
+            }
+            return true;
+
+            // if (recycle == true) {
+            //     createMessageDialog("すでに登録済みです", "エラー", "red");
+            //     number.value = "";
+            //     return false;
+            // }
+            // const loss = await checkRecycleNumberLossRegist();
+            // if (loss == true) {
+            //     createMessageDialog("すでにロス処理されています", "エラー", "red");
+            //     number.value = "";
+            //     return false;
+            // }
+        }
+
+        // フォーム画面作成
+        async function createFormDialog() {            
+            // const element = document.querySelector('.normal-content');
+            // if (element != null) element.inert = true;    
+            // registBtn.disabled = true;
+
+            const number = document.querySelector("[name='recycle-number']");
+            // const result = await checkNumber(number);
+            // if (result == false) return;
+            // ヘッダー
+            const elmHeader = getFormHeader("リサイクル券登録");
+            // コンテント
+            const elmContent = await getFormContent(number.value);
+            // const elmContent = await getFormContent(entity);
+            // フッター
+            const elmFooter = getFormFooter("登録")
+            // ダイアログ作成
+            const elmForm = document.createElement('div');
+            elmForm.classList.add('form-dialog');
+            elmForm.insertAdjacentElement('beforeend', elmHeader);
+            elmForm.insertAdjacentElement('beforeend', elmContent);
+            elmForm.insertAdjacentElement('beforeend', elmFooter);
+            const parent = document.getElementById('form-dialog-area');
+            const elm = document.createElement('div');
+            elm.classList.add('dialog');
+            parent.insertAdjacentElement('beforeend', elm);
+            parent.insertAdjacentElement('beforeend', elmForm);
+
+            const classChk = document.querySelector('[name="chk-recycle-class-form"]');
+            if (classChk == null) return;
+            const makerChk = document.querySelector('[name="chk-recycle-maker-form"]');
+            if (makerChk == null) return;
+
+            if (classChk.checked == true && makerChk.checked == true) {
+                const addBtn = document.querySelector('[name="add-btn"]');
+                if (addBtn != null) addBtn.focus();
+            } else if (classChk.checked == true && makerChk.checked == false) {
+                const makerCode = document.querySelector('[name="recycle-maker-code-form"]');
+                if (makerCode != null) makerCode.focus();
+            } else {
+                const classCode = document.querySelector('[name="recycle-class-code-form"]');
+                if (classCode != null) classCode.focus();
+            }
+        }
+
+        // フォーム画面のヘッダー部分作成
+        function getFormHeader(title) {
+            const elmHeader = document.createElement('div');
+            elmHeader.classList.add('dialog-header');
+            elmHeader.insertAdjacentHTML('beforeend', '<span>' + title + '</span>');
+            // 閉じるボタン
+            const closeElm = document.createElement('div');
+            closeElm.classList.add('img-btn');
+            closeElm.onclick = function (event) { closeDialog('form-dialog-area', event); }
+            closeImg = document.createElement('img');
+            closeImg.setAttribute('title', '閉じる');
+            closeImg.setAttribute('src', '/icons/close-s.png');
+            closeElm.insertAdjacentElement('beforeend', closeImg);
+            elmHeader.insertAdjacentElement('beforeend', closeElm);
+            return elmHeader;
+        }
+
+        // フォーム画面のコンテント部分作成
+        async function getFormContent(number) {
+            const elmContent = document.createElement('form');
+            elmContent.classList.add('dialog-content', 'recycle');
+            elmContent.setAttribute('id', 'recycle-form');
+            elmContent.setAttribute('name', 'recycle-input-area');
+
+            // elmContent.insertAdjacentHTML('beforeend', '<input name="recycle-id-form" type="hidden" value="' + entity.recycle_id + '">');
+            elmContent.insertAdjacentHTML('beforeend', '<input name="recycle-number-form" type="hidden" value="' + number + '">');
+
+            const numberText = document.createElement('div');
+            numberText.classList.add('form-dialog-parts', 'separate', 'cp12');
+            const numberTextLabel = document.createElement('p');
+            numberTextLabel.classList.add('cp11', 'ct2');
+            numberTextLabel.textContent = "お問合せ管理票番号：" + number;
+            numberText.insertAdjacentElement('beforeend', numberTextLabel);
+            elmContent.insertAdjacentElement('beforeend', numberText);
+
+            const usedate = document.createElement('div');
+            usedate.classList.add('form-dialog-parts', 'separate', 'cp12');
+            const usedateLabel = document.createElement('label');
+            usedateLabel.classList.add('cp3', 'text-right');
+            usedateLabel.textContent = "使用日";
+            const usedateInput = document.createElement('input');
+            usedateInput.setAttribute('name', 'recycle-usedate-form');
+            usedateInput.setAttribute('type', 'date');
+            usedateInput.classList.add('normal-input', 'cp6', 'ct4');
+            usedateInput.onfocus = function () { this.select(); }
+            const date = document.querySelector('[name="recycle-usedate"]');
+            if (date != null) {
+                usedateInput.value = date.value;
+            }
+            usedate.insertAdjacentElement('beforeend', usedateLabel);
+            usedate.insertAdjacentElement('beforeend', usedateInput);
+            elmContent.insertAdjacentElement('beforeend', usedate);
+
+            const shipper = document.createElement('div');
+            shipper.classList.add('form-dialog-parts', 'separate', 'cp12');
+            const shipperLabel = document.createElement('label');
+            shipperLabel.classList.add('cp3', 'text-right');
+            shipperLabel.textContent = "小売業者";
+            const shipperSelect = document.createElement('select');
+            shipperSelect.setAttribute('name', 'recycle-company-form');
+            shipperSelect.classList.add('normal-select', 'cp9', 'ct4');
+            shipperSelect.onchange = function() { createShipperOffice(this) };
+            shipper.insertAdjacentElement('beforeend', shipperLabel);
+            shipper.insertAdjacentElement('beforeend', shipperSelect);
+            elmContent.insertAdjacentElement('beforeend', shipper);
+            createSimpleComboBox(shipperSelect, shipperlist);
+            const companyCombo = document.querySelector('[name="recycle-company"]');
+            if (companyCombo != null) {
+                shipperSelect.value = companyCombo.value;
+            }
+
+            const office = document.createElement('div');
+            office.classList.add('form-dialog-parts', 'separate', 'cp12');
+            const officeLabel = document.createElement('label');
+            officeLabel.classList.add('cp3', 'text-right');
+            officeLabel.textContent = "支店等";
+            const officeSelect = document.createElement('select');
+            officeSelect.setAttribute('name', 'recycle-office-form');
+            officeSelect.classList.add('normal-select', 'cp9', 'ct4');
+            office.insertAdjacentElement('beforeend', officeLabel);
+            office.insertAdjacentElement('beforeend', officeSelect);
+            elmContent.insertAdjacentElement('beforeend', office);
+            createSimpleComboBox(officeSelect, officelist);
+            const officeCombo = document.querySelector('[name="recycle-office"]');
+            if (officeCombo != null) officeSelect.value = officeCombo.value;
+
+            const recycleClass = document.createElement('div');
+            recycleClass.classList.add('form-dialog-parts', 'separate', 'cp12');
+            const recycleClassLabel = document.createElement('label');
+            recycleClassLabel.classList.add('cp2', 'text-right');
+            recycleClassLabel.setAttribute('name', 'recycle-class-label-form');
+            recycleClassLabel.textContent = "品目";
+            const recycleClassChk = document.createElement('input');
+            recycleClassChk.classList.add('cp1', 'ct3');
+            recycleClassChk.setAttribute('name', 'chk-recycle-class-form');
+            recycleClassChk.setAttribute('type', 'checkbox');
+            const classCodeInput = document.createElement('input');
+            classCodeInput.setAttribute('name', 'recycle-class-code-form');
+            classCodeInput.classList.add('normal-input', 'cp2', 'ct4');
+            classCodeInput.onfocus = function () { this.select(); }
+            classCodeInput.setAttribute('inputmode', 'numeric');
+            classCodeInput.setAttribute('pattern', '\d*');
+            classCodeInput.setAttribute('maxlength', '2');
+            classCodeInput.addEventListener('keydown', function (e) { execRecycleClassInputChanged(e); });
+            classCodeInput.addEventListener('blur', function (e) { execRecycleClassInputBlur(e); });
+            const classNameInput = document.createElement('input');
+            classNameInput.setAttribute('name', 'recycle-class-name-form');
+            classNameInput.classList.add('normal-input', 'cp7', 'ct6');
+            classNameInput.readOnly = true;
+            const classChkCodeMemory = document.querySelector(".recycleregist-input [name='recycle-class-code-memory']");
+            const classChkNameMemory = document.querySelector(".recycleregist-input [name='recycle-class-name-memory']");
+            if (classChkCodeMemory != null && classChkNameMemory != null) {
+                if (classChkCodeMemory.value != "") {
+                    recycleClassChk.checked = true;
+                    classCodeInput.value = classChkCodeMemory.value;
+                    classNameInput.value = classChkNameMemory.value;
+                }
+            }
+            recycleClass.insertAdjacentElement('beforeend', recycleClassLabel);
+            recycleClass.insertAdjacentElement('beforeend', recycleClassChk);
+            recycleClass.insertAdjacentElement('beforeend', classCodeInput);
+            recycleClass.insertAdjacentElement('beforeend', classNameInput);
+            elmContent.insertAdjacentElement('beforeend', recycleClass);
+
+            const recycleMaker = document.createElement('div');
+            recycleMaker.classList.add('form-dialog-parts', 'separate', 'cp12');
+            const recycleMakerLabel = document.createElement('label');
+            recycleMakerLabel.classList.add('cp2', 'text-right');
+            recycleMakerLabel.setAttribute('name', 'recycle-maker-label-form');
+            recycleMakerLabel.textContent = "略称";
+            const recycleMakerChk = document.createElement('input');
+            recycleMakerChk.classList.add('cp1', 'ct3');
+            recycleMakerChk.setAttribute('name', 'chk-recycle-maker-form');
+            recycleMakerChk.setAttribute('type', 'checkbox');
+            const makerCodeInput = document.createElement('input');
+            makerCodeInput.setAttribute('name', 'recycle-maker-code-form');
+            makerCodeInput.classList.add('normal-input', 'cp2', 'ct4');
+            makerCodeInput.onfocus = function () { this.select(); }
+            makerCodeInput.setAttribute('inputmode', 'numeric');
+            makerCodeInput.setAttribute('pattern', '\d*');
+            makerCodeInput.setAttribute('maxlength', '3');
+            makerCodeInput.addEventListener('keydown', function (e) { execRecycleMakerInputChanged(e); });
+            makerCodeInput.addEventListener('blur', function (e) { execRecycleMakerInputBlur(e); });
+            const makerNameInput = document.createElement('input');
+            makerNameInput.setAttribute('name', 'recycle-maker-name-form');
+            makerNameInput.classList.add('normal-input', 'cp7', 'ct6');
+            makerNameInput.readOnly = true;
+            const makerChkCodeMemory = document.querySelector(".recycleregist-input [name='recycle-maker-code-memory']");
+            const makerChkNameMemory = document.querySelector(".recycleregist-input [name='recycle-maker-name-memory']");
+            if (makerChkCodeMemory != null && makerChkNameMemory != null) {
+                if (makerChkCodeMemory.value != "") {
+                    recycleMakerChk.checked = true;
+                    makerCodeInput.value = makerChkCodeMemory.value;
+                    makerNameInput.value = makerChkNameMemory.value;
+                }
+            }
+            recycleMaker.insertAdjacentElement('beforeend', recycleMakerLabel);
+            recycleMaker.insertAdjacentElement('beforeend', recycleMakerChk);
+            recycleMaker.insertAdjacentElement('beforeend', makerCodeInput);
+            recycleMaker.insertAdjacentElement('beforeend', makerNameInput);
+            elmContent.insertAdjacentElement('beforeend', recycleMaker);
+
+            const price = document.createElement('div');
+            price.classList.add('form-dialog-parts', 'separate', 'cp12');
+            const priceLabel = document.createElement('label');
+            priceLabel.classList.add('cp3', 'text-right');
+            priceLabel.textContent = "税込・税別";
+            const priceInput = document.createElement('input');
+            priceInput.setAttribute('name', 'recycle-price-form');
+            priceInput.classList.add('normal-input', 'text-right', 'cp3', 'ct4');
+            priceInput.onfocus = function () { this.select(); }
+            priceInput.setAttribute('inputmode', 'numeric');
+            priceInput.setAttribute('pattern', '\d*');
+            const priceMemory = document.querySelector(".recycleregist-input [name='recycle-price-memory']");
+            if (priceMemory != null) {
+                if (recycleClassChk.checked == true && recycleMakerChk.checked == true && priceMemory.value != "") priceInput.value = priceMemory.value;
+            }
+
+            price.insertAdjacentElement('beforeend', priceLabel);
+            price.insertAdjacentElement('beforeend', priceInput);
+
+            const taxInput = document.createElement('input');
+            taxInput.setAttribute('name', 'recycle-ex-tax-form');
+            taxInput.classList.add('normal-input', 'text-right', 'cp3', 'ct7');
+            taxInput.onfocus = function () { this.select(); }
+            taxInput.setAttribute('inputmode', 'numeric');
+            taxInput.setAttribute('pattern', '\d*');
+            const taxMemory = document.querySelector(".recycleregist-input [name='recycle-tax-memory']");
+            if (taxMemory != null) {
+                if (recycleClassChk.checked == true && recycleMakerChk.checked == true && taxMemory.value != "") taxInput.value = taxMemory.value;
+            }
+            price.insertAdjacentElement('beforeend', taxInput);
+            elmContent.insertAdjacentElement('beforeend', price);
+
+            return elmContent;
+        }
+
+        // フォーム画面のフッター部分作成
+        function getFormFooter(btnText) {
+            const elmFooter = document.createElement('div');
+            elmFooter.classList.add('dialog-footer');
+            elmFooter.insertAdjacentHTML('beforeend', '<button class="normal-btn frameless ct5 cp4" type="button" onclick="closeDialog(\'form-dialog-area\', event)"><span>キャンセル</span></button>');
+            elmFooter.insertAdjacentHTML('beforeend', '<button name="add-btn" class="normal-btn ok ct9 cp4" type="button" onclick="execSaveRecycleRegist()"><span>' + btnText + '</span></button>');
+            return elmFooter;
+        }
+
+        async function getRecycleRegistList() {
+            // const date = document.querySelector('.recycleregist-input [name="recycle-usedate"]');
+            // if (date == null) return;
+            // // const data = "date=" + encodeURIComponent(date.value);
+            const url = "/recycle/get/list/input/today";            
+            const data = "categoryId=" + encodeURIComponent(categoryId);
+            const contentType = 'application/x-www-form-urlencoded';
+            const resultResponse = await postFetch(url, data, token, contentType);
+            return await resultResponse.json();
+        }
+
+        function updateRecycleDisplay() {
+            const parent = document.getElementById('tablelist');
+            deleteAllElementsByName(parent, 'data-row');
+            list.forEach(item => {
+                createRecyleTableListContent(item);
+            });
+            parent.scrollIntoView(false);
+        }
+
+        // 日付の確認　今日より大きい日付は今日に直す
+        async function checkUsedateChanged(e) {
+            if (e.target.value > new Date().toLocaleDateString('sv-SE')) {
+                e.target.value = new Date().toLocaleDateString('sv-SE');
+            } else {
+                list = await getRecycleRegistList();
+                updateRecycleDisplay();
+            }
+        }
+
+        // function execCamera(self) {
+        //     Quagga.init({
+        //         inputStream: {
+        //             name: 'Live',
+        //             type: 'LiveStream',
+        //             target: document.querySelector('#interactive'),//埋め込んだdivのID
+        //         },
+        //         decoder: {
+        //             // readers: ['code_128_reader']//decoderの種類
+        //             readers: ['ean_reader']//decoderの種類
+        //         }
+        //     }, (err) => {
+        //         if(err) {
+        //             console.log(err);
+        //             return
+        //         }
+        //         console.log("Initialization finished. Ready to start");
+        //         Quagga.start();
+        //     })
+
+        //     // Quagga.onProcessed(result => {
+        //     //     const drawingCtx = Quagga.canvas.ctx.overlay;
+        //     //     const drawingCanvas = Quagga.canvas.dom.overlay;
+
+        //     //     if (result) {
+        //     //     // 検出中の緑の線の枠
+        //     //         if (result.boxes) {
+        //     //             drawingCtx.clearRect(0, 0, parseInt(drawingCanvas.getAttribute("width")), parseInt(drawingCanvas.getAttribute("height")));
+        //     //             result.boxes.filter(function (box) {
+        //     //                 return box !== result.box;
+        //     //             }).forEach(function (box) {
+        //     //                 Quagga.ImageDebug.drawPath(box, {x: 0, y: 1}, drawingCtx, {color: "green", lineWidth: 2});
+        //     //             });
+        //     //         }
+        //     //         // 読込中の青枠
+        //     //         if (result.box) {
+        //     //             Quagga.ImageDebug.drawPath(result.box, {x: 0, y: 1}, drawingCtx, {color: "#00F", lineWidth: 2});
+        //     //         }
+        //     //         // 検出完了時の赤線
+        //     //         if (result.codeResult && result.codeResult.code) {
+        //     //             Quagga.ImageDebug.drawPath(result.line, {x: 'x', y: 'y'}, drawingCtx, {color: 'red', lineWidth: 3});
+        //     //         }
+        //     //     }
+        //     // })
+
+        //     Quagga.onDetected(success => {
+        //         const code = success.codeResult.code;
+        //         if(code) {
+        //             Quagga.stop();
+        //             const parent = document.getElementById('interactive');
+        //             if (parent != null) deleteElements(parent);
+
+        //             const number = document.querySelector("[name='recycle-number']");
+        //             if (number != null) {
+        //                 // number.focus();
+        //                 number.value = code;
+        //                 afterRecyleNumberInputChanged();
+        //             }
+        //         }
+        //     })
+        // }
+
+// 初期化時の処理 ------------------------------------------------------------------------------------------------------------------------------------
+        // 読み込み時の処理
+        window.addEventListener("load", async () => {
+            // リサイクル券番号入力ボックスでエンターキーが押された時の処理を登録
+            document.querySelector('[name="recycle-number"]').addEventListener('keydown', function (e) { execRecycleNumberInputChanged(e); });
+
+            // リサイクル券番号入力ボックスのフォーカスが外れた時の処理を登録
+            document.querySelector('[name="recycle-number"]').addEventListener('blur', function (e) { execRecycleNumberInputBlur(e); });
+                
+            // 使用日が変更された時の処理を登録
+            const usedate = document.querySelector('[name="recycle-usedate"]');
+            if (usedate != null) {
+                usedate.addEventListener("change", async (e) => { await checkUsedateChanged(e) });
+                // sv-SEロケールはYYYY-MM-DD形式の日付文字列を戻す
+                usedate.value = new Date().toLocaleDateString('sv-SE');
+            }
+
+            createRecyleTableListHeader();
+            updateRecycleDisplay();
+
+            const company = document.querySelector('[name="recycle-company"]');
+            createRecyleComboBox(company, shipperlist);
+            officelist = await createShipperOffice(company);
+
+            const number = document.querySelector('[name="recycle-number"]');
+            if (number != null) {
+                number.focus();
+            }
+            
+            // 処理が終了したらスピナーを消去する
+            processingEnd();
+        });
+        </script>
+    </div>
+</body>
+
+</html>

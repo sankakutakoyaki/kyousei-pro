@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{layout/index}">
+
+<head>
+    <title>管理</title>
+</head>
+
+<body layout:fragment="layout-body">
+    <div class="normal-body">
+        <div class="index-btn-container">
+
+            <!-- <div class="index-btn" th:onclick="moveLinkPage('/info')" sec:authorize="hasAnyAuthority('APPROLE_admin', 'APPROLE_master')">
+                <img th:src="@{/icons/info.png}"><span>お知らせ</span>
+            </div> -->
+            <!-- <div class="index-btn" th:onclick="moveLinkPage('/company-detail')">
+                <img th:src="@{/icons/office.png}"><span>支店・担当</span>
+            </div> -->
+            <!-- <div class="index-btn" th:onclick="moveLinkPage('/contractor')">
+                <img th:src="@{/icons/contractor.png}"><span>施工担当</span>
+            </div> -->
+        </div>
+    </div>
+    <script th:src="@{/js/default.js}"></script>
+    <script type="text/JavaScript" th:inline="JavaScript">
+        // サイドバー作成
+        const parents = getHomeParentlist();
+        createSidebar(parents);
+        // const parents = getParentlist();
+        // const key = parents.find(item => ( item.id == 4 ));
+        // if (key != null) key.id = 0;
+        // const childlist = getChildlist();
+        // createAccordionSidebar(parents, childlist);
+
+        window.addEventListener("load", () => {
+            // 読み込み時のjavascriptを書く
+        });
+    </script>
+</body>
+
+</html>

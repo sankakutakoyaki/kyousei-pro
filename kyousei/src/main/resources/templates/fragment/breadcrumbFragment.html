@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+<body>
+  <div layout:fragment="title(breadcrumbs)">
+    <nav>
+      <ol class="breadcrumb">
+        <li th:each="breadcrumb : ${breadcrumbs}" th:classappend="${#strings.isEmpty(breadcrumb.url)} ? 'active' : ''">
+          <a th:unless="${#strings.isEmpty(breadcrumb.url)}" th:href="@{${breadcrumb.url}}"
+            th:text="${breadcrumb.label}"></a>
+          <strong th:if="${#strings.isEmpty(breadcrumb.url)}" th:text="${breadcrumb.label}"></strong>
+        </li>
+      </ol>
+    </nav>
+  </div>
+</body>

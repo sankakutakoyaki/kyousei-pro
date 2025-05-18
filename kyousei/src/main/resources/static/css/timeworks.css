@@ -1,0 +1,341 @@
+@charset "UTF-8";
+@import url("/css/item/style.css");
+@import url("/css/item/color.css");
+@import url("/css/item/button.css");
+@import url("/css/item/input.css");
+@import url("/css/item/dialog.css");
+@import url("/css/item/parts.css");
+@import url("/css/item/screen.css");
+@import url("/css/item/table.css");
+
+.clock {
+    font-family: 'Share Tech Mono', monospace;
+    color: var(--black);
+    text-align: center;
+    margin-bottom: 2rem;
+    position: relative;
+}
+/* 日付のスタイル */
+.clock-date {
+    font-size: 1.5rem;
+}
+/* 時間のスタイル */
+.clock-time {
+    font-size: 4rem;
+}
+.timeworks-header {
+    padding: 0 2rem;
+}
+.timeworks-container {            
+    display: grid;
+    grid-template-columns: 1fr 20rem auto 1fr;
+    gap: 1rem 3rem;
+    width: 100%;
+    padding: 3rem;
+}
+.timeworks-content {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(1rem,1fr));
+    align-items: center;
+    justify-content: center;
+    gap: 1rem .5rem;
+    width: 100%;
+}
+.simple-table.timeworks tr {
+    grid-template-columns: 8rem 5rem 5rem 8rem;
+}
+
+@media screen and (max-width:560px) {
+    .timeworks-container {
+        display: block;
+        width: 100%;
+    }
+}
+
+/******************************************************************************************************* 基本 */
+
+.tablelist-container.timeworks.list {
+    padding: 0 2rem;
+    max-width: 60rem;
+}
+
+.tablelist-container.timeworks.confilm {
+    padding: 0 2rem;
+    max-width: 60rem;
+}
+
+.tablelist-container.timeworks.dailypay {
+    padding: 0 2rem;
+    max-width: 55rem;
+}
+
+.tablelist-container.timeworks>header {
+    grid-template-columns: 1fr;
+}
+
+.tablelist-container.timeworks>header>div:first-child {
+    display: grid;
+    grid-template-columns: 1fr 4rem 1fr 14rem 8rem;
+    /* grid-template-columns: 24rem 4rem 14rem 8rem; */
+    gap: .5rem;
+}
+
+.tablelist-container.timeworks>header>div:nth-child(2) {
+    margin-top: .5rem;
+    display: grid;
+    gap: .5rem;
+}
+.tablelist-container.timeworks.list>header>div:nth-child(2) {
+    grid-template-columns: 13rem 13rem 13rem 1fr 4rem 4rem 4rem;
+}
+.tablelist-container.timeworks.confilm>header>div:nth-child(2) {
+    grid-template-columns: 13rem 13rem 13rem 1fr 4rem 4rem 4rem;
+}
+.tablelist-container.timeworks.dailypay>header>div:nth-child(2) {
+    grid-template-columns: 13rem 13rem 13rem 1fr 5rem 5rem;
+}
+
+.timeworks-between {
+    display: grid;
+    gap: .5rem;
+    grid-template-columns: 1fr 1rem 1fr;
+}
+
+.timeworks-month-select {
+    display: grid;
+    gap: .5rem;
+    grid-template-columns: repeat(3, 1fr);
+    margin-right: 4rem;
+}
+
+.timeworks-day-select {
+    display: grid;
+    gap: .5rem;
+    grid-template-columns: repeat(3, 1fr);
+    margin-right: 4rem;
+}
+
+.timeworks-week-select {
+    display: grid;
+    gap: .5rem;
+    grid-template-columns: repeat(3, 1fr);
+    margin-right: 4rem;
+}
+
+.timeworks-between>span,
+.timeworks-month-select>span,
+.timeworks-day-select>span,
+.timeworks-week-select>span {
+    align-self: center;
+    justify-self: center;
+}
+
+/* .timeworks tr {
+    grid-template-columns: 3rem 5rem 1fr 7rem 5rem 5rem 5rem 5rem 5rem;
+} */
+.timeworks.list tr {
+    /* grid-template-columns: 3rem 5rem 1fr 7rem 7rem 7rem 5rem 5rem 3rem; */
+    grid-template-columns: 3rem 5rem 1fr 7rem 5rem 5rem 5rem 5rem 3rem;
+    /* grid-template-columns: 3rem 5rem 1fr 7rem minmax(auto, 7rem) minmax(auto, 7rem) 5rem 5rem 3rem; */
+}
+/* .timeworks.list tr:first-child {
+    grid-template-columns: 3rem 5rem 1fr 7rem 7rem 7rem 5rem 5rem 3rem;
+} */
+.timeworks.confilm tr {
+    grid-template-columns: 3rem 5rem 1fr 7rem 5rem 5rem 5rem 3rem;
+}
+.timeworks.dailypay tr {
+    grid-template-columns: 3rem 5rem 1fr 7rem 5rem 5rem 5rem 3rem;
+}
+
+.timeworks tr>td>span[data-statestr="確定"]:before {
+    content: attr(data-statestr);
+    color: red;
+}
+
+.timeworks tr>td>span[data-statestr="未定"]:before {
+    content: attr(data-statestr);
+    color: black;
+}
+
+.timeworks tr>td>span[data-printstatestr="済"]:before {
+    content: attr(data-printstatestr);
+    color: red;
+}
+
+.timeworks tr>td>span[data-printstatestr="未"]:before {
+    content: attr(data-printstatestr);
+    color: black;
+}
+
+.timeworks tr>td>span[data-paystatestr="済"]:before {
+    content: attr(data-paystatestr);
+    color: red;
+}
+
+.timeworks tr>td>span[data-paystatestr="未"]:before {
+    content: attr(data-paystatestr);
+    color: black;
+}
+
+/* 確定入力ダイアログ */
+.dialog-content.timeworks {
+    max-width: 35rem;
+    grid-template-columns: 1fr;
+}
+.dialog-content.timeworks .form-dialog-input {
+    display: grid;
+    column-gap: .5rem;
+    grid-template-columns: 1fr;
+}
+.dialog-content.timeworks>.form-dialog-input:nth-child(2) {
+    grid-template-columns: auto auto auto;
+}
+.dialog-content.timeworks>.form-dialog-input:nth-child(3) {
+    grid-template-columns: 1fr 1fr;
+    width: 12rem;
+}
+.dialog-content.timeworks>.form-dialog-input:nth-child(2) label:first-child {
+    margin: 0 0 0 .5rem;
+}
+.dialog-content.timeworks>.form-dialog-input:nth-child(2) label:nth-child(2) {
+    margin: 0 0 .5rem .5rem;
+}
+.dialog-content.timeworks>.form-dialog-input:nth-child(2)>.form-dialog-parts {
+    gap: 0;
+}
+
+/* 新規入力ダイアログ */
+.dialog-content.new-timeworks {
+    max-width: 35rem;
+    grid-template-columns: 1fr;
+}
+.dialog-content.new-timeworks .form-dialog-input {
+    display: grid;
+    column-gap: .5rem;
+    grid-template-columns: 1fr;
+}
+.dialog-content.new-timeworks>.form-dialog-input:nth-child(2) {
+    grid-template-columns: 7rem 1fr;
+    /* align-items: end; */
+    /* column-gap: 0; */
+}
+.dialog-content.new-timeworks>.form-dialog-input:nth-child(2)>.form-dialog-parts {
+    position: relative;
+}
+.dialog-content.new-timeworks>.form-dialog-input:nth-child(2)>.form-dialog-parts input {
+    padding-right: 2.5rem;
+}
+.dialog-content.new-timeworks>.form-dialog-input:nth-child(2)>.form-dialog-parts .img-btn {
+    position: absolute;
+    right: 0;
+    top: 2.4rem;
+    width: 2.4rem;
+}
+.dialog-content.new-timeworks>.form-dialog-input:nth-child(3) {
+    grid-template-columns: auto auto auto;
+}
+
+/* 清算入力ダイアログ */
+.dialog-content.cash-expenses {
+    width: 25rem;
+    padding: 2rem;
+}
+
+#print-dialog-area {
+    background-color: var(--white);
+}
+/* プリント用 */
+.print-table.dailypay {
+    width: 210mm;
+    height: 297mm;
+    padding: 10mm;
+    break-after: page;
+    border-spacing: 0;
+}
+
+.print-table.dailypay td {
+    border: solid 1px var(--black);
+}
+
+.print-table.dailypay td.text-right {
+    text-align: right;
+}
+
+.print-table.dailypay td.text-left {
+    text-align: left;
+}
+
+.print-table.dailypay td.text-center {
+    text-align: center;
+}
+
+.print-table.dailypay tr:nth-child(6n+1) td {
+    border: 0;
+    height: 8%;
+    font-size: 10px;
+    background-color: var(--white);
+}
+
+.print-table.dailypay tr:nth-child(6n+2) td {
+    border-right: 0;
+    border-bottom: 0;
+    height: 2.5%;
+    font-size: 7px;
+    background-color: var(--white);
+}
+
+.print-table.dailypay tr:nth-child(6n+2) td:last-child {
+    border-right: solid 1px var(--black);
+}
+
+.print-table.dailypay tr:nth-child(6n+3) td {
+    border-right: 0;
+    border-bottom: 0;
+    height: 2.5%;
+    font-size: 7px;
+    background-color: var(--white);
+}
+
+.print-table.dailypay tr:nth-child(6n+4) td {
+    border-right: 0;
+    border-bottom: 0;
+    height: 2.8%;
+    font-size: 6px;
+    background-color: var(--white);
+}
+
+.print-table.dailypay tr:nth-child(6n+4) td:last-child {
+    border-right: solid 1px var(--black);
+}
+
+.print-table.dailypay tr:nth-child(6n+5) td {
+    border-right: 0;
+    height: 4%;
+    font-size: 7px;
+    background-color: var(--white);
+}
+
+.print-table.dailypay tr:nth-child(6n+5) td:last-child {
+    border-right: solid 1px var(--black);
+}
+
+.print-table.dailypay tr:nth-child(6n) td {
+    border-top: 0;
+    border-left: 0;
+    border-right: 0;
+    border-bottom: 1px dashed var(--black);
+    height: 4%;
+    background-color: var(--white);
+}
+
+.print-table.dailypay tr:nth-child(24) td {
+    border: 0;
+    background-color: var(--white);
+    break-after: page;
+}
+
+.print-table.dailypay tr.space-cell {
+    height: 50%;
+    background-color: var(--white);
+}

@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{layout/tablelist-noside}">
+
+<head>
+    <title>現金経費一覧</title>
+    <style type="text/css">
+        .table-container {
+            width: 60rem;
+        }
+        .table-container.dialog {
+            width: 100%;
+            grid-template-rows: 1fr;
+            background-color: var(--white);
+        }
+        .form-dialog.detail {
+            height: 80%;
+        }
+        #tablelist tr {
+            grid-template-columns: 3rem 7rem 7rem 8rem 8rem 7rem 8rem 6rem 1fr;
+        }
+        #dialog-tablelist tr {
+            grid-template-columns: 2rem 7rem 6rem 1fr 1fr 12rem 3rem 2rem;
+            /* font-size: .8rem;
+            height: 3rem; */
+        }
+        #dialog-tablelist td>.img-btn {
+            width: 3rem;
+        }
+        .tab-panel-box {
+            width: 100%;
+        }
+        .input-area.date-move {
+            column-gap: 2rem;
+        }
+        header {
+            display: grid;
+            row-gap: 1rem;
+        }
+        .normal-table td[data-state="支払い済"] {
+            color: red;
+        }
+        .dialog-content.cash-expenses-detail {
+            width: 55rem;
+            grid-template-rows: auto auto auto 1fr;
+        }
+        .dialog-content.cash-expenses-detail .detail-content {
+            margin-top: 1rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--line);
+        }
+        .dialog-content.cash-expenses {
+            width: 20rem;
+        }
+        .normal-table td[name="payment"] {
+            padding-right: 2rem;
+        }
+        #add-btn {
+            align-self: end;
+        }
+        .label-t {
+            font-size: 1.2rem;
+            margin-right: .2rem;
+        }
+        @media screen and (max-width:1240px) {}
+
+        @media screen and (max-width:560px) {
+            .table-container {
+                width: 100%;
+            }
+            /* .normal-table tr {
+                grid-template-columns: 1fr;
+                height: fit-content;
+                padding: 1.5rem;
+            } */
+            /* .normal-table tr td[name="recycle_number"]::before {
+                content: "番号 : ";
+            } */
+            /* .normal-table tr td[name="class_name"]::before {
+                content: "品目 : ";
+            } */
+            /* .normal-table tr td[name="maker_name"]::before {
+                content: "略称 : ";
+            } */
+        }
+    </style>
+</head>
+
+<body layout:fragment="layout-body">
+    <div class="normal-body">
+        <div class="table-container">
+            <!-- パンくずリスト -->
+            <div
+                th:with="breadcrumbs=${ { {url:'/' ,label:'ホーム'},{url:'/piggy_bank', label:'経理'},{url:'', label:'現金経費一覧'} } }">
+                <div th:replace="~{fragment/main::breadcrumb-fragment(${breadcrumbs})}"></div>
+            </div>
+            <!-- ヘッダー -->
+            <header>
+                <div class="input-area w100">
+                    <div class="form-parts w30">
+                        <select id="dateclass-select" name="dateclass-select" class="normal-select" type="text" value=""></select>
+                    </div>
+                    <!-- 期間指定ボックス -->
+                    <div class="input-area">
+                        <input name="start-date" class="normal-input date-area" type="date" value="" onfocus="this.select();" onchange="checkDateChanged(this)">
+                        <span class="pc-style">〜</span>
+                        <input name="end-date" class="normal-input date-area" type="date" value="" onfocus="this.select();" onchange="checkDateChanged(this)">
+                        <button name="search-btn" class="normal-btn ok" type="button" onclick="execSearch()">
+                            <span>検索</span>
+                        </button>
+                    </div>
+                    <div class="input-area w100">
+                        <!-- <div class="input-area w50"></div>
+                        <div class="form-parts w50"> -->
+                            <select id="paystate-select" name="paystate-select" class="normal-select" type="text" value=""></select>
+                        <!-- </div> -->
+                    </div>
+                    <div th:replace="~{fragment/header::header-btns-cash-expenses-fragment}"></div>
+                </div>
+        
+                <div class="input-area date-move w100 pc-style">
+                    <!-- 日付移動ボタン -->
+                    <div th:replace="~{fragment/header::header-month-move-btn-fragment}"></div>
+                    <div th:replace="~{fragment/header::header-day-move-btn-fragment}"></div>
+                    <div th:replace="~{fragment/header::header-week-move-btn-fragment}"></div>
+
+                    <!-- <div class="input-area w100">
+                        <div class="input-area w100"></div>
+                        <button id="payment-btn" class="normal-btn" type="button" onclick="execPrint(this)">
+                            <span>支払い</span>
+                        </button>
+                        <button id="print-btn" class="normal-btn" type="button" onclick="execRePrint(this)">
+                            <span>再印刷</span>
+                        </button>
+                    </div> -->
+                </div>
+            </header>
+            <!-- コンテンツ -->
+            <main id="scroll-area">
+                <table id="tablelist" class="normal-table">
+                    <tbody></tbody>
+                </table>
+                <button type="button" class="page-top"></button>
+            </main>
+            <!-- フッター -->
+            <footer id="footer-text" class="pc-style"><span></span></footer>
+        </div>
+    </div>
+
+    <script th:src="@{/js/default.js}"></script>
+    <script th:src="@{/js/tablelist.js}"></script>
+    <script th:src="@{/js/cashexpenses.js}"></script>
+    <script type="text/JavaScript" th:inline="JavaScript">
+        const token = /*[[${_csrf.token}]]*/;
+        const paidCode = /*[[${paidCode}]]*/;
+        const unpaidCode = /*[[${unpaidCode}]]*/;
+        const deleteStateCode = /*[[${deleteStateCode}]]*/;
+        const undecidedStateCode = /*[[${undecidedStateCode}]]*/;
+        const banklist = /*[[${banklist}]]*/;
+        const accountlist = /*[[${accountlist}]]*/;
+        const sqldata = /*[[${sqldata}]]*/; // リスト再取得用エンティティ
+        let formentity = /*[[${formentity}]]*/;
+        let origin = [];
+        let details = [];
+        let detailCode = 0; // 仮ID
+        const headerNames = ['申請番号', '申請日', '申請者', '金額', '支払日', '支払者', '金庫', '状況', ''];
+        const username = /*[[${username}]]*/;
+        
+// ----------------------------------------------------------------------------------------------------------------------------------
+        // テーブルリストのコンテント画面を作成する
+        function createListContent(tbl, list) {
+            list.forEach(function (item) {
+                let newRow = tbl.insertRow();
+                // ID（Post送信用）
+                newRow.setAttribute('id', 'row00-' + item.cash_expenses_id);
+                newRow.setAttribute('name', 'data-row');
+                newRow.setAttribute('data-id', item.cash_expenses_id);
+                newRow.setAttribute('data-version', item.version);
+                newRow.setAttribute('data-payState', item.pay_state);
+                let timer;
+                // シングルクリック時の処理
+                newRow.onclick = function (e) { 
+                    // チェックボックスの動作を停止させる
+                    e.preventDefault();
+                    // ダブルクリック判定のための時間を空ける
+                    clearTimeout(timer);
+                    timer = setTimeout(() => {
+                        // 時間が経過したらシングルクリックに確定してチェック状態を反転させる
+                        clickCheckBtnManual(item.cash_expenses_id, this);
+                    }, 180);
+                }
+                // ダブルクリック時の処理
+                newRow.ondblclick = function (e) { 
+                    // チェックボックスの動作を停止させる
+                    e.preventDefault();
+                    // シングルクリックでは無くなったのでタイマーを停止
+                    clearTimeout(timer);
+                    // フォーム入力画面を表示する
+                    editFunc(e);
+                }
+                // 選択用チェックボックス
+                newRow.insertAdjacentHTML('beforeend', '<td name="chk-cell" class="pc-style"><input id="chk00-' + item.cash_expenses_id + '" class="normal-chk" name="chk-box" type="checkbox" value="' + item.cash_expenses_id + '"></td>');
+                // 申請番号
+                newRow.insertAdjacentHTML('beforeend', '<td name="cash-expenses-id"><span>' + item.cash_expenses_id + '</span></td>');
+                // newRow.querySelector('td[name="cash-expenses-id"] .link-cell').addEventListener('click', function (e) { editFunc(e); });
+                // 申請日
+                newRow.insertAdjacentHTML('beforeend', '<td name="applicant-date"><span>' + (item.application_date == "9999-12-31" ? "-----": item.application_date) + '</span></td>');
+                // 申請者
+                newRow.insertAdjacentHTML('beforeend', '<td name="applicant-employee-name"><span>' + (item.applicant_employee_name ?? "-----") + '</span></td>');
+                // 金額
+                newRow.insertAdjacentHTML('beforeend', '<td name="payment" class="text-right"><span>' + (item.payment ?? "0") + '円</span></td>');
+                // 支払日
+                newRow.insertAdjacentHTML('beforeend', '<td name="payment-date"><span>' + (item.payment_date == "9999-12-31" ? "-----": item.payment_date) + '</span></td>');
+                // 支払い者
+                newRow.insertAdjacentHTML('beforeend', '<td name="applicant-employee-name"><span>' + (item.payment_employee_name ?? "-----") + '</span></td>');
+                // 金庫
+                newRow.insertAdjacentHTML('beforeend', '<td name="bank-name"><span>' + (item.bank_name ?? "-----") + '</span></td>');
+                // 支払い確定状況
+                const stateStr = item.pay_state == paidCode ? "支払い済" : "未払い";
+                newRow.insertAdjacentHTML('beforeend', '<td name="pay-state" data-state="' + stateStr + '">' + stateStr + '</td>');
+                // if (stateStr == "支払い済") {
+                //     newRow.insertAdjacentHTML('beforeend', '<td name="pay-state" data-state="' + stateStr + '">' + stateStr + '</td>');
+                // } else {
+                //     newRow.insertAdjacentHTML('beforeend', '<td name="pay-state" data-state="' + stateStr + '"><button name="payment-btn" class="normal-btn ok" type="button" onclick ="execPayment()">支払い</button></td>');
+                // }
+            });
+        }
+        // 削除
+        async function execDelete(self) {
+            // ケバブメニューを閉じる
+            closeKebabDialog();
+            // 選択した要素のIDリストを取得
+            const ids = getIds(self);
+            if (ids == false) return;
+            // 削除処理
+            const data = JSON.stringify(ids);
+            const resultResponse = await postFetch("/cash_expenses/delete", data, token, "application/json");
+            const result = await resultResponse.json();
+            if (result == 0) {
+                messageDialog("削除できませんでした", 'エラー', 'red');
+            } else {
+                messageDialog("削除しました", '成功', 'blue');
+                // 画面更新
+                updateTableList();
+            }
+        }
+        function getIds(self) {
+            // 親要素（tablelist-container）を取得する
+            const parent = self.closest('.table-container');
+            // const parent = document.querySelector('.table-container');
+            // SQL文を取得する（選択されていなければ[NULL]が返る）
+            const ids = getAllSelectedInCheckbox(parent);
+            if (ids.length == 0) {
+                messageDialog('選択されていません', 'エラー', 'red');
+                return false;
+            }
+            return ids;
+        }
+        // 検索ボタン押下時の処理
+        async function execSearch() {
+            updateTableList();
+        }
+        // テーブルリストデータを再取得・表示する
+        async function updateTableList() {
+            startProcessing();
+            // 現金経費リストを取得する
+            await getTableList();
+            // 現金経費リスト作成
+            changeCashExpensesList();
+
+            processingEnd();
+        }
+        // 現金経費データリストを取得する
+        async function getTableList() {
+            const start = document.querySelector("[name='start-date']");
+            if (start == null) return;
+            const end = document.querySelector("[name='end-date']");
+            if (end == null) return;
+            const dateClass = document.getElementById('dateclass-select');
+            if (dateClass == null) return;
+            const dateclassStr = dateClass.value == 1 ? "application_date" : "payment_date";
+
+            const url = "/sql/get/list";
+            const sql = {"sqlString":sqldata.sqlString + " AND ce." + dateclassStr + " BETWEEN '" + start.value + "' AND '" + end.value + "' ORDER BY ce." + dateclassStr, "classPath":sqldata.classPath}
+            const data = JSON.stringify(sql);
+            const contentType = 'application/json';
+            const result = await postFetch(url, data, token, contentType);
+            origin = await result.json();
+        }
+        // 日付分類リストを作成する
+        function createDateClassList() {
+            const statelist = [{"number":1, "text":"申請日"}, {"number":2, "text":"支払い日"}]
+            const stateselect = document.getElementById('dateclass-select');
+            createComboBox(stateselect, statelist);
+        }
+        // 支払い確定状況リストを作成する
+        function createPayStateList() {
+            const statelist = [{"number":unpaidCode, "text":"未払い"}, {"number":paidCode, "text":"支払い済"}]
+            const stateselect = document.getElementById('paystate-select');
+            createComboBoxWithTop(stateselect, statelist);
+        }
+        // 画面更新時に従業員・支払い状況リストの選択によってフィルターをかける
+        function changeCashExpensesList() {
+            const state = document.getElementById('paystate-select');
+            if (state == null) return;
+            let list = [];
+            if (state.value > 0) {
+                list = origin?.filter(value => { return value.pay_state == state.value });
+            } else {
+                list = structuredClone(origin);
+            }
+            updateListDisplay("tablelist", headerNames, list, "footer-text", true);
+        }
+
+// -------------------------------------------------------------------------------------------------------------------------------------- 支払い画面
+        function createFunc() {
+            const item = structuredClone(formentity);
+            item.application_date = new Date().toLocaleDateString('sv-SE');
+            details = [];
+            createCashExpensesDetailFormDialog(item);
+        }
+        async function editFunc(e) {
+            e.preventDefault();
+            const version = parseInt(e.currentTarget.dataset.version);
+            const payState = parseInt(e.currentTarget.dataset.payState);
+            const data = "id=" + encodeURIComponent(parseInt(e.currentTarget.dataset.id));
+            const result = await postFetch('/cash_expenses_detail/get', data, token, 'application/x-www-form-urlencoded');
+            details = await result.json();
+            
+            const item = structuredClone(formentity);
+            if (details.length > 0) {
+                item.application_date = details[0].application_date;
+                item.applicant_employee_id = details[0].applicant_employee_id;
+                item.applicant_employee_code = details[0].applicant_employee_code;
+                item.applicant_employee_name = details[0].applicant_employee_name;
+                item.payment_state = payState;
+                item.version = version
+            }            
+            createCashExpensesDetailFormDialog(item);
+        }
+        // 現金経費支払いフォーム画面作成
+        function createCashExpensesDetailFormDialog(item) {
+            // ヘッダー
+            const elmHeader = getFormHeader("現金経費申請");
+            // コンテント
+            const elmContent = getCashExpensesDetailFormContent(item);
+            // フッター
+            const elmFooter = getCashExpensesDetailFormFooter();
+            // ダイアログ作成
+            const elmForm = document.createElement('div');
+            elmForm.classList.add('form-dialog', 'detail');
+            elmForm.insertAdjacentElement('beforeend', elmHeader);
+            elmForm.insertAdjacentElement('beforeend', elmContent);
+            elmForm.insertAdjacentElement('beforeend', elmFooter);
+            elmForm.querySelector("input[name='applicant-employee-code']").addEventListener('blur', function(e) {
+                if (e.target.value == "") {
+                    const name = document.querySelector('input[name="applicant-employee-name"]');
+                    name.value = "";
+                    return;
+                }
+                searchForNameByApplicantCode(e);
+            });
+            elmForm.querySelector("input[name='applicant-employee-code']").addEventListener('keydown', function (e) {
+                if (e.target.value == "") {
+                    const name = document.querySelector('input[name="applicant-employee-name"]');
+                    name.value = "";
+                    return;
+                }
+                if(e.key === 'Enter'){
+                    e.preventDefault();
+                    searchForNameByApplicantCode(e);
+                }
+            });
+            elmForm.querySelector("input[name='supplier-code']").addEventListener('blur', function(e) {
+                if (e.target.value == "") {
+                    const name = document.querySelector('input[name="supplier-name"]');
+                    name.value = "";
+                    return;
+                }
+                searchForNameBySupplierCode(e);
+            });
+            elmForm.querySelector("input[name='supplier-code']").addEventListener('keydown', function (e) {
+                if (e.target.value == "") {
+                    const name = document.querySelector('input[name="supplier-name"]');
+                    name.value = "";
+                    return;
+                }
+                if(e.key === 'Enter'){
+                    e.preventDefault();
+                    searchForNameBySupplierCode(e);
+                }
+            });
+            const parent = document.getElementById('form-dialog-area');
+            const elm = document.createElement('div');
+            elm.classList.add('dialog');
+            parent.insertAdjacentElement('beforeend', elm);
+            parent.insertAdjacentElement('beforeend', elmForm);
+            const code = parent.querySelector('input[name="applicant-employee-code"]');
+            if (code != null && code.value == "") {
+                code.focus();
+            } else {
+                const date = parent.querySelector('input[name="usedate"]');
+                if (date != null) date.focus();
+            }
+        }
+        // 現金経費支払いフォーム画面のコンテント部分作成
+        function getCashExpensesDetailFormContent(item) {
+            const elmContent = document.createElement('form');
+            elmContent.classList.add('dialog-content', 'cash-expenses-detail');
+            elmContent.setAttribute('id', 'cash-expenses-form');
+            // DB登録用隠しアイテム
+            // elmContent.insertAdjacentHTML('beforeend', '<input name="cash-expenses-id" type="hidden" value="' + item.cash_expenses_id + '">');
+            elmContent.insertAdjacentHTML('beforeend', '<input name="applicant-employee-id" type="hidden" value="' + item.applicant_employee_id + '">');
+            elmContent.insertAdjacentHTML('beforeend', '<input name="supplier-id" type="hidden" value="' + item.supplier_id + '">');
+            elmContent.insertAdjacentHTML('beforeend', '<input name="payment-state" type="hidden" value="' + item.payment_state + '">');
+            elmContent.insertAdjacentHTML('beforeend', '<input name="version" type="hidden" value="' + item.version + '">');
+            // 金庫選択ボックス・支払い担当者
+            elmContent.insertAdjacentHTML('beforeend', '<div class="input-area w60">' +
+                                                    //    '<div class="form-parts w40"><label>金庫</label><select name="bank" class="normal-select"></select></div>' +
+                                                       '<div class="form-parts date-area"><label>申請日</label><input name="application-date" class="normal-input" type="date" value="' + item.application_date + '"></div>' +
+                                                       '<div class="form-parts w20"><label>コード</label><input name="applicant-employee-code" class="normal-input" type="text"' +
+                                                       ' inputmode="numeric" pattern="\d*" onfocus="this.select();" value="' + (item.applicant_employee_code == 0 ? "": item.applicant_employee_code) + '"></div>' +
+                                                       '<div class="form-parts w50"><label>申請者</label><input name="applicant-employee-name" class="normal-input" type="text" disabled value="' + (item.applicant_employee_name ?? "") + '"></div></div>');
+            // const bankArea = elmContent.querySelector('select[name="bank"]');
+            // createComboBox(bankArea, banklist);
+            // 仕入れ先
+            elmContent.insertAdjacentHTML('beforeend', '<div class="input-area w100 detail-content">' +
+                                                       '<div class="form-parts date-area"><label>使用日</label><input name="usedate" class="normal-input" type="date"></div>' +
+                                                       '<div class="form-parts w20"><label>勘定科目</label><select name="account-title" class="normal-select"></select></div>' +
+                                                       '<div class="form-parts w55"><label>内容</label><input name="account-title-contents" class="normal-input" type="text" onfocus="this.select();"></div></div>');
+            const accountArea = elmContent.querySelector('select[name="account-title"]');
+            createComboBoxWithTop(accountArea, accountlist);
+            // setComboboxSelected(accountArea, item.account_title_id);
+            // 出金金額
+            // elmContent.insertAdjacentHTML('beforeend', '<div class="form-parts w30"><label>金額</label><input name="total-payment" class="normal-input text-right" type="text" value="' + item.payment + '" disabled"></div>');
+            elmContent.insertAdjacentHTML('beforeend', '<div class="input-area w100">' +
+                                                       '<div class="form-parts w30"><label>登録番号</label><div class="input-area"><span class="label-t">T</span><input name="supplier-code" class="normal-input" type="text"' +
+                                                       ' inputmode="numeric" pattern="\d*" onfocus="this.select();"></div></div>' +
+                                                       '<div class="form-parts w55"><label>事業者名</label><input name="supplier-name" class="normal-input" type="text" onfocus="this.select();"></div>' +
+                                                       '<div class="form-parts w15"><label>金額</label><input name="amount" class="normal-input text-right" type="text" onfocus="this.select();" value="0"></div>' +
+                                                       '<div class="form-parts w10"><label>税率</label><select name="tax-rate" class="normal-select"></select></div>' +
+                                                       '<button id="add-btn" class="normal-btn ok" type="button" onclick="addCashExpensesList()"><span>追加</span></button></div>');
+            const taxArea = elmContent.querySelector('select[name="tax-rate"]');
+            createComboBox(taxArea, [{"number":10, "text":"10"}, {"number":8, "text":"8"}, {"number":0, "text":"0"}]);
+            // リスト部分
+            elmContent.insertAdjacentHTML('beforeend', '<div class="table-container dialog"><main id="dialog-scroll-area" class="tab-panel-box" data-panel="01"><table id="dialog-tablelist" class="normal-table"><tbody name="scroll-element"></tbody></table></main></div>');
+            let tbl = elmContent.querySelector('#dialog-tablelist');
+            const header = tbl.createTHead();
+            createListHeader(header, ['', '使用日', '勘定科目', '内容', '事業者名', '金額'], false);
+            tbl = elmContent.querySelector('#dialog-tablelist>tbody');
+
+            // テーブル部分作成
+            if (details.length > 0) {
+                details.forEach(formdata => {
+                    setDetailTable(tbl, formdata);
+                });
+            }
+            return elmContent;
+        }
+        // 現金経費支払いフォーム画面のフッター部分作成
+        function getCashExpensesDetailFormFooter(btnText) {
+            const elmFooter = document.createElement('div');
+            elmFooter.classList.add('dialog-footer');
+            elmFooter.insertAdjacentHTML('beforeend', '<button class="normal-btn frameless" type="button" onclick="closeDialog(\'form-dialog-area\', event)"><span>キャンセル</span></button>');
+            elmFooter.insertAdjacentHTML('beforeend', '<button id="save-btn" class="normal-btn ok" type="button" onclick="saveFunc()"><span>保存</span></button>');
+            elmFooter.insertAdjacentHTML('beforeend', '<button id="payment-btn" class="normal-btn yes" type="button" onclick="paymentFunc()"><span>支払い</span></button>');
+            return elmFooter;
+        }
+        // コードから[employee]を取得して、名前を表示
+        async function searchForNameByApplicantCode(e) {
+            e.preventDefault();
+            const id = document.querySelector('input[name="applicant-employee-id"]');
+            const code = document.querySelector('input[name="applicant-employee-code"]');
+            const name = document.querySelector('input[name="applicant-employee-name"]');
+            const date = document.querySelector('input[name="usedate"]');
+            if (id == null || code == null || name == null || date == null) return;
+            if (code.value == "" || isNaN(code.value)) {
+                id.value = "";
+                name.value = "";
+                return;
+            }
+            // [id=code]に入力されたコードから[employee]を取得して[applicant_employee_name]に入力する
+            const data = "code=" + encodeURIComponent(parseInt(code.value));
+            const result = await postFetch('/employee/code', data, token, 'application/x-www-form-urlencoded');
+            const entity = await result.json();
+            if (entity != null && entity.employee_id > 0) {
+                id.value = entity.employee_id;
+                name.value = entity.full_name;
+                date.focus();
+                return;
+            } else {
+                id.value = "";
+                code.value = ""
+                name.value = "";
+                messageDialog("コードが登録されていません", 'エラー', 'red');
+                return;
+            }
+        }
+        // コードから[company]を取得して、名前を表示
+        async function searchForNameBySupplierCode(e) {
+            e.preventDefault();
+            const id = document.querySelector('input[name="supplier-id"]');
+            const code = document.querySelector('input[name="supplier-code"]');
+            const name = document.querySelector('input[name="supplier-name"]');
+            const amount = document.querySelector('input[name="amount"]');
+            if (id == null || code == null || name == null || amount == null) return;
+            if (code.value == "" || isNaN(code.value) || code.value.length != 13) {
+                id.value = "";
+                name.value = "";
+                return;
+            }
+            // [id=code]に入力されたコードから[company]を取得して[supplier_name]に入力する
+            const data = "code=" + encodeURIComponent(parseInt(code.value));
+            const result = await postFetch('/company/registcode', data, token, 'application/x-www-form-urlencoded');
+            const entity = await result.json();
+            if (entity != null && entity.company_id > 0) {
+                id.value = entity.company_id;
+                name.value = entity.company_name;
+                amount.focus();
+                return;
+            } else {
+                id.value = "";
+                code.value = ""
+                name.value = "";
+                messageDialog("コードが登録されていません", 'エラー', 'red');
+                return;
+            }
+        }
+        // 削除ボタン押下時
+        function execDetailDelete(self) {
+            if (self == null) return;
+            const row = self.closest('tr[name="data-row"]');
+            const elm = details.find(value => { return value.cash_expenses_detail_id == row.dataset.id });
+            if (elm.cash_expenses_detail_id < 0) {
+                details = details.filter(value => { return value.cash_expenses_detail_id != row.dataset.id });
+            } else {
+                elm.state = deleteStateCode;
+            }            
+            deleteElementsAll(row);
+        }
+        // 支払いボタン押下時
+        async function paymentFunc() {
+            // const cashId = document.querySelector('input[name="cash-expenses-id"]');
+            const payState = document.querySelector('input[name="payment-state"]');
+            const version = document.querySelector('input[name="version"]');
+            const result = await execSaveCashExpensesDetail();
+            if (result == 0) {
+                // 失敗のダイアログを表示する
+                messageDialog("保存できませんでした", 'エラー', 'red');
+            } else {
+                // 支払い画面
+                createCashExpensesFormDialog();
+                const paymentCashId = document.querySelector('input[name="payment-cash-expenses-id"]');
+                const paymentVersion = document.querySelector('input[name="payment-version"]');
+                const paymentState = document.querySelector('input[name="payment-pay-state"]');
+                paymentCashId.value = result;
+                paymentState.value = payState.value;
+                paymentVersion.value = version.value;
+            }            
+        }
+        // 保存ボタン押下時
+        async function saveFunc() {console.log(details)
+            const result = await execSaveCashExpensesDetail();
+            if (result == 0) {
+                // 失敗のダイアログを表示する
+                messageDialog("保存できませんでした", 'エラー', 'red');
+            } else {
+                // 画面更新
+                updateTableList();
+            }
+        }
+        // 保存処理
+        async function execSaveCashExpensesDetail() {
+            // リストにデータがなければエラーを返す
+            const count = details.filter(value => { return value.state == undecidedStateCode });
+            if (count == 0) {
+                messageDialog("保存する項目がありません", 'エラー', 'red');
+                return;
+            }
+            closeDialog('form-dialog-area')
+            // 保存処理
+            details.forEach(value => {
+                if (value.payment_date == null) value.payment_date = "9999-12-31";
+            });
+            const data = JSON.stringify(details);
+            const resultResponse = await postFetch('/cash_expenses_detail/save', data, token, 'application/json');
+            return await resultResponse.json();
+        }
+        // 入力チェック
+        function execDetailFormDataCheck() {
+            let msg = "";
+            const code = document.querySelector('input[name="applicant-employee-code"]');
+            if (code == null || code.value == "" || code.value == "0") {
+                msg += '\nコードが入力されていません';
+            }
+            const date = document.querySelector('input[name="usedate"]');
+            if (date == null || date.value == null || date.value == "") {
+                msg += '\n使用日が入力されていません';
+            }
+            const select = document.querySelector('select[name="account-title"]');
+            if (select == null || select.value == null || select.value == 0) {
+                msg += '\n勘定科目が選択されていません';
+            }
+            const amount = document.querySelector('input[name="amount"]');
+            if (amount == null || amount.value == "") {
+                msg += '\n金額が入力されていません';
+            }
+            // エラーが一つ以上あればエラーメッセージダイアログを表示する
+            if (msg != "") {
+                messageDialog(msg, 'エラー', 'red');
+                return false;
+            }
+            return true;
+        }
+        // 日付の確認　今日より大きい日付は今日に直す
+        function checkDateChanged(self) {
+            if (self.value > new Date().toLocaleDateString('sv-SE')) {
+                self.value = new Date().toLocaleDateString('sv-SE');
+            }
+        }
+        // 詳細入力リストにデータを追加する
+        function addCashExpensesList() {
+            if (execDetailFormDataCheck() == false) {
+                return;
+            } else {
+                const form = document.getElementById('cash-expenses-form');
+                const formData = new FormData(form);        
+                const formdata = structuredClone(formentity);
+                detailCode --;
+                formdata.cash_expenses_detail_id = detailCode;
+                formdata.application_date = formData.get('application-date');
+                formdata.applicant_employee_id = Number(formData.get('applicant-employee-id'));
+                formdata.usedate = formData.get('usedate') ?? "-----";
+                formdata.supplier_id =  Number(formData.get('supplier-id'));
+                const supplierName = formData.get('supplier-name');
+                formdata.supplier_name = supplierName ?? "-----";
+                const selectId = Number(formData.get('account-title'));
+                formdata.account_title_id = selectId;
+                const selectItem = accountlist.find(value => { return value.number == selectId});
+                formdata.account_title_name = selectItem.text ?? "-----";
+                formdata.account_title_contents = formData.get('account-title-contents');
+                const amount = formData.get('amount');
+                formdata.amount = amount == "" ? 0: Number(amount);
+                formdata.payment_date = "9999-12-31";
+                formdata.payment_state = unpaidCode;
+                formdata.tax_rate = Number(formData.get('tax-rate'));
+                const payState = formData.get('payment-state');
+                formdata.payment_state = payState;
+                const tbl = document.querySelector('#dialog-tablelist>tbody');
+                setDetailTable(tbl, formdata);
+                details.push(formdata);
+            }
+        }
+        // 現金経費詳細データをセットする処理部分
+        function setDetailTable(tbl, formdata) {
+            let newRow = tbl.insertRow();
+            // ID（Post送信用）
+            newRow.setAttribute('name', 'data-row');
+            newRow.setAttribute('data-id', formdata.cash_expenses_detail_id);
+            // 調整用セル
+            newRow.insertCell();
+            // 使用日
+            newRow.insertAdjacentHTML('beforeend', '<td name="usedate"><span>' + formdata.usedate + '</span></td>');
+            // 勘定科目
+            newRow.insertAdjacentHTML('beforeend', '<td><span>' + (formdata.account_title_name ?? "-----") + '</span></td>');
+            // 内容
+            newRow.insertAdjacentHTML('beforeend', '<td><span>' + (formdata.account_title_contents ?? "-----") + '</span></td>');
+            // 事業者名
+            newRow.insertAdjacentHTML('beforeend', '<td><span>' + (formdata.supplier_name ?? "-----") + '</span></td>');
+            // 金額
+            const taxStr = formdata.tax_rate == 0 ? "（非課税）": "（" + formdata.tax_rate + "%対象）";
+            newRow.insertAdjacentHTML('beforeend', '<td><span>' + formdata.amount + '円' + taxStr + '</span></td>');
+            // 削除
+            newRow.insertAdjacentHTML('beforeend', '<td><div class="img-btn" onclick="execDetailDelete(this)"><img title="削除" src="/icons/dust.png"></div></td>');
+        }
+        // 合計金額算出処理
+        function getCashEntity() {
+            if (details != null){
+                const list = details.filter(value => { return value.state == undecidedStateCode })
+                const total = list.reduce((sum, i) => sum + i.amount, 0);
+                const cash = {};
+                cash.payment = total;
+                return cash;
+            }
+        }
+        // 保存処理
+        async function saveCashExpensesFormData() {
+            if (execCashExpensesFormDataCheck() == false) {
+                return;
+            } else {
+                const empId = document.querySelector('input[name="payment-employee-id"]');
+                if (empId == null) {
+                    messageDialog("支払い者コードが入力してください", 'エラー', 'red');
+                    return;
+                }
+                const bank = document.querySelector('select[name="bank"]');
+                if (bank == null) return;
+                const total = document.querySelector('input[name="total-payment"]');
+                if (total == null) return;
+                const id = document.querySelector('input[name="payment-cash-expenses-id"]');
+                if (id == null) return;
+                const version = document.querySelector('input[name="payment-version"]');
+                if (version == null) return;
+                let item = {};
+                item.cash_expenses_id = id.value;
+                item.bank_id = bank.value;
+                item.application_date = details[0].application_date;
+                item.applicant_employee_id = details[0].applicant_employee_id;
+                item.payment = total.value;
+                item.payment_date = new Date().toLocaleDateString('sv-SE');
+                item.payment_employee_id = empId.value;
+                item.pay_state = paidCode;
+                item.version = version.value;
+                closeDialog('form-dialog-area');
+                // 保存処理
+                const data = JSON.stringify(item);
+                const resultResponse = await postFetch('/cash_expenses/payment', data, token, 'application/json');
+                const result = await resultResponse.json();
+                if (result == 0) {
+                    // 失敗のダイアログを表示する
+                    messageDialog("登録できませんでした", 'エラー', 'red');
+                } else {
+                    startProcessing();
+                    // 画面更新
+                    updateTableList();
+                    // 処理が終了したらスピナーを消去する
+                    processingEnd();
+                }
+            }
+        }
+
+// 初期化時の処理 ------------------------------------------------------------------------------------------------------------------------------------
+        // 読み込み時の処理
+        window.addEventListener("load", async () => {
+            // サイドバーを作成する
+            const parents = getParentlist();
+            const childlist = getChildlist();
+            createAccordionSidebar(parents, childlist);
+            // セレクトボックスの値が変更された時の処理を登録
+            document.getElementById('paystate-select').addEventListener("change", () => { changeCashExpensesList() });
+            // 日付ボックスを設定
+            execSpecifyPeriod('this-month');
+            // 支払い確定状況リストを作成する
+            createDateClassList();
+            // 支払い確定状況リストを作成する
+            createPayStateList();
+            // 画面更新
+            updateTableList();
+            // 処理が終了したらスピナーを消去する
+            processingEnd();
+        });
+    </script>
+</body>
+
+</html>

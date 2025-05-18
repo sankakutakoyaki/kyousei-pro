@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{content/index/indexLayout}">
+
+<head>
+    <title>勤怠</title>
+</head>
+
+<body>
+    <div class="normal-body" layout:fragment="layout-body">
+        <div class="index-btn-container">
+            <div class="index-btn" th:onclick="moveLinkPage('/timeworks/recorder')">
+                <img th:src="@{/icons/clock.png}"><span>レコーダ</span>
+            </div>
+            <div class="index-btn" th:onclick="moveLinkPage('/timeworks/list')">
+                <img th:src="@{/icons/booklist.png}"><span>一覧(社員)</span>
+            </div>
+            <div class="index-btn" th:onclick="moveLinkPage('/timeworks/confilm')">
+                <img th:src="@{/icons/approved.png}"><span>確定(バイト)</span>
+            </div>
+            <div class="index-btn" th:onclick="moveLinkPage('/timeworks/dailypay')">
+                <img th:src="@{/icons/payment.png}"><span>日払い</span>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

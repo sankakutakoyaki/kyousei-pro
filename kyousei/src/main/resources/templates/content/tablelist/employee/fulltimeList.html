@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{content/tablelist/employee/fulltimeListLayout}">
+
+<body>
+    <div class="normal-body tablelist-fulltime" layout:fragment="layout-body"
+        th:with="breadcrumbs=${ { {url:'/',label:'ホーム'},{url:'/personnel', label:'人事'},{url:'', label:'従業員一覧'} } }">
+        <div th:replace="~{content/tablelist/tablelistScreen::tablelist-screen(${breadcrumbs})}"></div>
+    </div>
+</body>
+
+</html>

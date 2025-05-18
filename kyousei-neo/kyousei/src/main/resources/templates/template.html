@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,viewport-fit=cover">
+
+<head>
+    <meta charset="UTF-8">
+    <link th:href="@{/css/mian.css}" rel="stylesheet" type="text/css">
+
+    <style type="text/css">
+        /* 個別のCSSを書く */
+    </style>
+</head>
+
+<body>
+    <div th:replace="~{fragment/main::main-fragment}"></div>
+
+    <script th:src="@{/js/default.js}"></script>
+    <script type="text/JavaScript" th:inline="JavaScript">
+        // 個別のjavascriptを書く
+        window.addEventListener("load", () => {
+            // 読み込み時のjavascriptを書く
+        });
+    </script>
+</body>
+
+</html>

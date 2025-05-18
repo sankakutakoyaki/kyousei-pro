@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{layout/index}">
+
+<head>
+    <title>経理</title>
+</head>
+
+<body layout:fragment="layout-body">
+    <div class="normal-body">
+        <div class="index-btn-container">
+            <div class="index-btn" th:onclick="moveLinkPage('/cash_expenses')">
+                <img th:src="@{/icons/payment.png}"><span>現金経費</span>
+            </div>
+        </div>
+    </div>
+    <script th:src="@{/js/default.js}"></script>
+    <script type="text/JavaScript" th:inline="JavaScript">
+        // サイドバー作成
+        const parents = getHomeParentlist();
+        createSidebar(parents);
+        // const parents = getParentlist();
+        // const key = parents.find(item => ( item.id == 3 ));
+        // if (key != null) key.id = 0;
+        // const childlist = getChildlist();
+        // createAccordionSidebar(parents, childlist);
+
+        window.addEventListener("load", () => {
+            // 読み込み時のjavascriptを書く
+        });
+    </script>
+</body>
+
+</html>

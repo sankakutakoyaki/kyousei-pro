@@ -1,0 +1,345 @@
+@charset "UTF-8";
+
+/******************************************************************************************************* 基本のボタン */
+
+.normal-btn {
+    display: grid;
+    align-items: center;
+    justify-items: center;
+    height: 2.5rem;
+    width: 100%;
+    border-radius: .5rem;
+    transition: 0.1s;
+    cursor: var(--cursor);
+    white-space: nowrap;
+    border: 1px solid var(--btn-br);
+    background-color: var(--btn-bg);
+    font-size: .8rem;
+}
+
+/* .normal-btn:hover {
+    background-color: var(--btn-hover);
+} */
+
+.normal-btn.ok {
+    background-color: var(--okbtn-bg);
+    color: var(--white);
+}
+
+/* .normal-btn.ok:hover {
+    background-color: var(--okbtn-hover);
+} */
+
+.normal-btn.frameless {
+    border: 0;
+}
+
+.normal-btn.frameless.selected {
+    border-bottom: 2px solid var(--br);
+    border-image: linear-gradient(to right, transparent 5%, lightgrey 5%, lightgrey 95%, transparent 95%) 1;
+}
+
+/* .normal-btn.frameless.selected:hover {
+    border-bottom: 0;
+} */
+
+/******************************************************************************************************* 大きいボタン */
+
+.large-btn {
+    display: grid;
+    align-items: center;
+    justify-items: center;
+    height: 5rem;
+    width: 100%;
+    border: 2px solid var(--btn-br);
+    border-radius: 1rem;
+    background-color: var(--btn-bg);
+    transition: 0.1s;
+    cursor: var(--cursor);
+    white-space: nowrap;
+    font-size: 2rem;
+}
+
+/******************************************************************************************************* 画像のみのボタン */
+
+.img-btn {
+    /* display: grid; */
+    background-color: transparent;
+    border: 0;
+    cursor: var(--cursor);
+    align-self: center;
+}
+
+.img-btn>img {
+    padding: .5rem;
+    width: 90%;
+    border-radius: .5rem;
+}
+
+.img-btn.ok {
+    border-radius: .5rem;
+    background-color: var(--okbtn-bg);
+    border: 0;
+}
+.img-btn.ok>img {
+    filter: brightness(0) invert(1);
+}
+
+/* .img-btn>img:hover {
+    background-color: var(--hover-bg);
+} */
+
+/******************************************************************************************************* アカウント名 */
+
+.user-btn {
+    display: grid;
+    grid-template-columns: auto auto;
+    align-items: end;
+    justify-content: end;
+}
+
+.user-btn span {
+    display: inline-block;
+    margin-bottom: .3rem;
+    color: var(--white);
+    user-select: none;
+    font-size: .9rem;
+}
+
+/******************************************************************************************************* ヘッダーロゴ */
+
+.logo-btn {
+    display: flex;
+    align-items: end;
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--white);
+    margin-right: 1rem;
+    cursor: var(--cursor);
+}
+
+/******************************************************************************************************* ログアウトボタン */
+
+.logout-btn {
+    display: flex;
+    align-items: end;
+    margin-left: .5rem;
+    width: 100%;
+    height: 100%;
+}
+
+.logout-btn>button {
+    background-color: transparent;
+    border: 0;
+    width: fit-content;
+    height: fit-content;
+    cursor: var(--cursor);
+}
+
+.logout-btn>button>img {
+    width: 2rem;
+    height: 2rem;
+    filter: brightness(0) invert(1);
+}
+
+/* .logout-btn>button>img:hover {
+    filter: brightness(.5) invert(.5);
+} */
+
+/******************************************************************************************************* タイトルメニューボタン */
+
+.title-menu-btns {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(1rem, 5rem));
+    height: 100%;
+    justify-items: center;
+}
+
+.title-menu-btn {
+    font-size: .7rem;
+    color: var(--white);
+    cursor: var(--cursor);
+}
+
+.title-menu-btn>img {
+    height: 1.6rem;
+    filter: brightness(0) invert(1);
+}
+
+.title-menu-btn span {
+    display: flex;
+    align-items: end;
+    color: var(--white);
+    user-select: none;
+}
+
+/* .title-menu-btn span:hover {
+    transform: scale(1.1, 1.1);
+    font-weight: bold;
+} */
+
+/******************************************************************************************************* タイル状にボタンを並べる */
+
+.index-btn-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 8rem);
+    margin-top: 3rem;
+    margin-left: 2rem;
+    max-width: 45rem;
+}
+
+.index-btn {
+    display: grid;
+    place-items: center;
+    cursor: var(--cursor);
+    border-radius: 50%;
+    padding: 10%;
+    transition: all .1s ease-in-out;
+}
+
+.index-btn>img {
+    margin: .5rem;
+    width: 70%;
+    object-fit: cover;
+}
+
+.index-btn>span {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+/* .index-btn:hover {
+    transform: scale(1.1, 1.1);
+    background-color: var(--hover-bg);
+} */
+
+/******************************************************************************************************* ページトップボタン */
+
+.page-top {
+    /* buttonタグのリセットCSS */
+    border: none;
+    outline: none;
+    padding: 0;
+    appearance: none;
+    /*--影の複数指定--*/
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    transition: background-color 1s;
+    /* ボタンの装飾 */
+    position: absolute;
+    right: 2rem;
+    bottom: 2rem;
+    z-index: 100;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: var(--theme-blue);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.5s ease;
+    opacity: 0;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+}
+
+/* 矢印のスタイル */
+.page-top::before {
+    content: "";
+    width: 12px;
+    height: 12px;
+    margin-bottom: -6px;
+    border-top: solid 3px var(--white);
+    border-right: solid 3px var(--white);
+    transform: rotate(-45deg);
+}
+
+/******************************************************************************************************* PC表示のみ */
+
+@media screen and (min-width:561px) {
+
+    .title-menu-btn {
+        display: flex;
+        height: 100%;
+        align-items: end;
+        justify-content: center;
+        font-size: .9rem;
+    }
+}
+
+/******************************************************************************************************* スマホ表示のみ */
+@media screen and (max-width:560px) {
+
+    .title-menu-btns {
+        grid-template-columns: repeat(5, 1fr);
+    }
+
+    .title-menu-btn {
+        display: grid;
+        justify-items: center;
+        font-size: .7rem;
+    }
+
+    .index-btn-container {
+        grid-template-columns: repeat(auto-fill, minmax(6rem, 1fr));
+        margin: 0;
+        padding: 1rem;
+    }
+}
+
+/******************************************************************************************************* PCとスマホのホバーした時の処理 */
+@media (hover: hover) {
+    .normal-btn:hover {
+        background-color: var(--btn-hover);
+    }
+    .normal-btn.ok:hover {
+        background-color: var(--okbtn-hover);
+    }
+    .normal-btn.frameless.selected:hover {
+        border-bottom: 0;
+    }
+    .img-btn>img:hover {
+        background-color: var(--hover-bg);
+    }
+    .img-btn.ok:hover {
+        background-color: var(--okbtn-hover);
+    }
+    .img-btn.ok>img:hover {
+        background-color: initial;
+    }
+    .logout-btn>button>img:hover {
+        filter: brightness(.5) invert(.5);
+    }
+    .title-menu-btn span:hover {
+        transform: scale(1.1, 1.1);
+        font-weight: bold;
+    }
+    .index-btn:hover {
+        transform: scale(1.1, 1.1);
+        background-color: var(--hover-bg);
+    }
+}
+@media (hover: none) {
+    .normal-btn:hover {
+        background-color: var(--btn-bg);
+    }
+    .normal-btn.ok:hover {
+        background-color: var(--okbtn-bg);
+    }
+    .normal-btn.frameless.selected:hover {
+        border-bottom: 2px solid var(--br);
+        border-image: linear-gradient(to right, transparent 5%, lightgrey 5%, lightgrey 95%, transparent 95%) 1;
+    }
+    .img-btn>img:hover {
+        background-color: transparent;
+    }
+    .logout-btn>button>img:hover  {
+        filter: brightness(0) invert(1);
+    }
+    .title-menu-btn span:hover {
+        transform: scale(1, 1);
+        font-weight: bold;
+    }
+    .index-btn:hover {
+        transform: scale(1, 1);
+        background-color: transparent;
+    }
+}

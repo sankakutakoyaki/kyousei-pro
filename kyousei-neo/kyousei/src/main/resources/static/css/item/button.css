@@ -1,0 +1,358 @@
+@charset "UTF-8";
+
+.img-btns {
+    display: flex;
+    /* display: grid;
+    grid-template-columns: repeat(auto-fill, 3rem);
+    column-gap: .5rem; */
+}
+
+/******************************************************************************************************* 基本のボタン */
+
+.normal-btn {
+    display: grid;
+    align-items: center;
+    justify-items: center;
+    height: 2.5rem;
+    /* width: 100%; */
+    min-width: 5rem;
+    border-radius: .5rem;
+    transition: 0.1s;
+    cursor: var(--cursor);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    border: 1px solid var(--btn-br);
+    background-color: var(--btn-bg);
+    /* font-size: .8rem; */
+}
+.normal-btn.ok {
+    background-color: var(--okbtn-bg);
+    color: var(--white);
+}
+.normal-btn.yes {
+    background-color: var(--yesbtn-bg);
+    color: var(--white);
+}
+.normal-btn.frameless {
+    border: 0;
+}
+.normal-btn.frameless.selected {
+    border-bottom: 2px solid var(--br);
+    border-image: linear-gradient(to right, transparent 5%, lightgrey 5%, lightgrey 95%, transparent 95%) 1;
+}
+
+/******************************************************************************************************* 大きいボタン */
+
+.large-btn {
+    display: grid;
+    align-items: center;
+    justify-items: center;
+    height: 5rem;
+    width: 100%;
+    border: 2px solid var(--btn-br);
+    border-radius: 1rem;
+    background-color: var(--btn-bg);
+    transition: 0.1s;
+    cursor: var(--cursor);
+    white-space: nowrap;
+    font-size: 2rem;
+}
+
+/******************************************************************************************************* 画像のみのボタン */
+
+.img-btn {
+    background-color: transparent;
+    border: 0;
+    cursor: var(--cursor);
+    align-self: center;
+    text-align: center;
+    /* width: 3rem; */
+}
+.img-btn>img {
+    padding: .5rem;
+    width: 90%;
+    /* width: 3rem; */
+    border-radius: .5rem;
+}
+.img-btn>span {
+    /* font-size: 80%; */
+    font-size: .8rem;
+    white-space: nowrap;
+}
+/* .img-btn.ok {
+    border-radius: .2rem;
+    background-color: var(--okbtn-bg);
+    border: 0;
+} */
+/* .img-btn.ok>img {
+    filter: brightness(0) invert(1);
+} */
+
+/******************************************************************************************************* アカウント名 */
+
+.user-btn {
+    display: grid;
+    grid-template-columns: auto auto;
+    align-items: end;
+    justify-content: end;
+}
+.user-btn span {
+    display: inline-block;
+    margin-bottom: .3rem;
+    color: var(--white);
+    user-select: none;
+    font-size: .9rem;
+}
+
+/******************************************************************************************************* ヘッダーロゴ */
+
+.logo-btn {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--white);
+    margin-right: 2rem;
+    cursor: var(--cursor);
+}
+
+/******************************************************************************************************* ログアウトボタン */
+
+.logout-btn {
+    display: flex;
+    align-items: end;
+    margin-left: .5rem;
+    width: 100%;
+    height: 100%;
+}
+
+.logout-btn>button {
+    background-color: transparent;
+    border: 0;
+    width: fit-content;
+    height: fit-content;
+    cursor: var(--cursor);
+}
+
+.logout-btn>button>img {
+    width: 2rem;
+    height: 2rem;
+    filter: brightness(0) invert(1);
+}
+
+/* .logout-btn>button>img:hover {
+    filter: brightness(.5) invert(.5);
+} */
+
+/******************************************************************************************************* タイトルメニューボタン */
+
+/* .title-menu-btns {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(1rem, 5rem));
+    height: 100%;
+    justify-items: center;
+}
+
+.title-menu-btn {
+    font-size: .7rem;
+    color: var(--white);
+    cursor: var(--cursor);
+}
+
+.title-menu-btn>img {
+    height: 1.6rem;
+    filter: brightness(0) invert(1);
+}
+
+.title-menu-btn span {
+    display: flex;
+    align-items: end;
+    color: var(--white);
+    user-select: none;
+} */
+
+/****************************************************************************************************** タイル状にボタンを並べる */
+
+/* .index-btn-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 8rem);
+    max-width: 45rem;
+    margin: 5rem;
+}
+.index-btn {
+    display: grid;
+    place-items: center;
+    cursor: var(--cursor);
+    border-radius: 50%;
+    padding: 10%;
+    transition: all .1s ease-in-out;
+}
+.index-btn>img {
+    margin: .5rem;
+    width: 70%;
+    object-fit: cover;
+}
+.index-btn>span {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+} */
+
+/******************************************************************************************************* ページトップボタン */
+
+.page-top {
+    /* buttonタグのリセットCSS */
+    border: none;
+    outline: none;
+    padding: 0;
+    appearance: none;
+    /*--影の複数指定--*/
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    transition: background-color 1s;
+    /* ボタンの装飾 */
+    position: absolute;
+    right: 2rem;
+    bottom: 4rem;
+    z-index: 100;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: var(--theme-blue);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.5s ease;
+    opacity: 0;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+}
+/* 矢印のスタイル */
+.page-top::before {
+    content: "";
+    width: 12px;
+    height: 12px;
+    margin-bottom: -6px;
+    border-top: solid 3px var(--white);
+    border-right: solid 3px var(--white);
+    transform: rotate(-45deg);
+}
+
+/******************************************************************************************************* カメラ */
+
+#interactive {
+    width: 100vw;
+}
+#interactive>video {
+    width: 100vw;
+}
+#interactive>canvas {
+    width: 100vw;
+}
+.drawingBuffer {
+    position: absolute;
+    left: 0;
+}
+.camera-area>.img-btn.close {
+    position: absolute;
+    right: 0;
+    top: 0;
+    background-color: transparent;
+    width: 4rem;
+    filter: brightness(.3) invert(.7);
+}
+.form-parts div[name="camera-btn"] {
+    position: absolute;
+    right: .4rem;
+    bottom: .1rem;
+    width: 2rem;
+}
+.form-parts div[name="camera-btn"]>img {
+    padding: 0;
+}
+
+/******************************************************************************************************* PC表示のみ */
+
+/* @media screen and (min-width:561px) {
+
+    .title-menu-btn {
+        display: flex;
+        height: 100%;
+        align-items: end;
+        justify-content: center;
+        font-size: .9rem;
+    }
+} */
+
+/******************************************************************************************************* スマホ表示のみ */
+@media screen and (max-width:560px) {
+    .form-parts div[name="camera-btn"] {
+        bottom: .6rem;
+    }
+}
+
+/******************************************************************************************************* PCとスマホのホバーした時の処理 */
+@media (hover: hover) {
+    .normal-btn:hover {
+        background-color: var(--btn-hover-bg);
+    }
+    .normal-btn.ok:hover {
+        background-color: var(--okbtn-hover-bg);
+    }
+    .normal-btn.yes:hover {
+        background-color: var(--yesbtn-hover-bg);
+    }
+    /* .normal-btn.frameless.selected:hover {
+        border-bottom: 0;
+    } */
+    .img-btn:hover>img {
+        background-color: var(--btn-hover-bg);
+    }
+    /* .img-btn.ok:hover {
+        background-color: var(--okbtn-hover);
+    }
+    .img-btn.ok>img:hover {
+        background-color: initial;
+    } */
+    /* .logout-btn>button>img:hover {
+        filter: brightness(.5) invert(.5);
+    } */
+    /* .title-menu-btn span:hover {
+        transform: scale(1.1, 1.1);
+        font-weight: bold;
+    } */
+    /* .index-btn:hover {
+        transform: scale(1.1, 1.1);
+    }
+    .index-btn:hover>span {
+        font-weight: bold;
+    } */
+    .dialog-header>.img-btn:hover img {
+        background-color: transparent;
+        filter: brightness(.5) invert(.5);
+    }
+}
+@media (hover: none) {
+    /* .normal-btn:hover {
+        background-color: transparent;
+    }
+    .normal-btn.ok:hover {
+        background-color: transparent;
+    } */
+    /* .normal-btn.frameless.selected:hover {
+        border-bottom: 2px solid var(--br);
+        border-image: linear-gradient(to right, transparent 5%, lightgrey 5%, lightgrey 95%, transparent 95%) 1;
+    } */
+    .img-btn:hover>img {
+        background-color: transparent;
+    }
+    /* .logout-btn>button>img:hover  {
+        filter: brightness(0) invert(1);
+    } */
+    /* .title-menu-btn span:hover {
+        transform: scale(1, 1);
+        font-weight: bold;
+    } */
+    /* .index-btn:hover {
+        transform: scale(1, 1);
+        background-color: transparent;
+    } */
+    .dialog-header>.img-btn:hover img {
+        background-color: transparent;
+    }
+}

@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{layout/tablelist}">
+
+<head>
+    <title>営業担当登録（外部）</title>
+    <style type="text/css">
+        /* PC表示のみ */
+        @media screen and (min-width:561px) {
+            .table-container {
+                max-width: 60rem;
+            }
+            .normal-table tr {
+                grid-template-columns: 3rem 5rem minmax(10rem, 1fr) minmax(10rem, 15rem) minmax(10rem, 15rem) 1rem;
+            }
+            .form-dialog {
+                width: 40rem;
+            }
+            .table-container>header {
+                grid-template-columns: 1fr auto;
+                column-gap: 1rem;
+            }
+        }
+        /* スマホ表示のみ */
+        @media screen and (max-width:560px) {
+            .table-container {
+                max-width: 100%;
+            }
+            .normal-table tr {
+                grid-template-columns: 1fr;
+                height: fit-content;
+                padding: 1.5rem;
+            }
+            .normal-table tr td[name="id-cell"]::before {
+                content: "ID : ";
+            }
+            /* .normal-table tr td[name="code-cell"]::before {
+                content: "コード : ";
+            } */
+            .normal-table tr td[name="company-cell"]::before {
+                content: "会社名 : ";
+            }
+            .normal-table tr td[name="office-cell"]::before {
+                content: "営業所名 : ";
+            }
+            .normal-table tr td[name="name-cell"] {
+                font-size: 1.2rem;
+                font-weight: bold;
+                margin-bottom: .5rem;
+            }
+            .form-dialog {
+                width: 100%
+            }
+        }
+    </style>
+</head>
+
+<body layout:fragment="layout-body">
+    <div class="normal-body">
+        <div class="table-container">
+            <!-- パンくずリスト -->
+            <div
+                th:with="breadcrumbs=${ { {url:'/' ,label:'ホーム'},{url:'/regist', label:'登録'},{url:'', label:'営業担当(外部)'} } }">
+                <div th:replace="~{fragment/main::breadcrumb-fragment(${breadcrumbs})}"></div>
+            </div>
+            <!-- ヘッダー -->
+            <header class="input-area tablelist-regist">
+                <div th:replace="~{fragment/header::header-search-fragment}"></div>
+                <div th:replace="~{fragment/header::header-btns-fragment}"></div>
+            </header>
+            <!-- コンテンツ -->
+            <main id="scroll-area">
+                <table id="tablelist" class="normal-table">
+                    <tbody></tbody>
+                </table>
+                <button type="button" class="page-top"></button>
+            </main>
+            <!-- フッター -->
+            <footer id="footer-text" class="pc-style"><span></span></footer>
+        </div>
+    </div>
+    <script th:src="@{/js/default.js}"></script>
+    <script th:src="@{/js/tablelist.js}"></script>
+    <script type="text/JavaScript" th:inline="JavaScript">
+        const token = /*[[${_csrf.token}]]*/;
+        const sidebarchildlist = /*[[${sidebarchildlist}]]*/; // サイドバーリスト用
+        const sidebarparentlist = /*[[${sidebarparentlist}]]*/; // サイドバー親リスト用
+        const sqllistdata = /*[[${sqllistdata}]]*/; // リスト再取得用エンティティ
+        const sqlformdata = /*[[${sqlformdata}]]*/; // 新規・更新用エンティティ
+        const formentity = /*[[${formentity}]]*/; // 新規・更新用エンティティ
+        // const downloaddata = /*[[${downloaddata}]]*/; // CSVダウンロード用エンティティ
+        // downloaddata.sqlString += " AND e.employee_id ";
+        const deleteStateCode = /*[[${deleteStateCode}]]*/; // 削除用コード
+        const headerNames = ['ID', '担当者名', '会社名', '支店名'];
+        const officelist = /*[[${officelist}]]*/; // フォームコンボボックス用
+        const username = /*[[${username}]]*/; // ログインユーザー名
+
+        let origin = /*[[${origin}]]*/; // 初期リスト記憶用
+        let simpledata = /*[[${simpledata}]]*/; // Sql実行用エンティティ
+
+        // 新規
+        function createFunc(self) {
+            // ケバブメニューを閉じる
+            closeKebabDialog();
+
+            const selectItem = document.querySelector('#sidebar-area p.selected');
+            if (selectItem == null) {
+                messageDialog("会社が選択されていません", "エラー", "red");
+                return;
+            }
+            // 新規作成画面を開く
+            formentity.category_id = 0;
+            execCreateForm(self, formentity);
+        }
+        // 編集
+        function editFunc(self) {
+            // ケバブメニューを閉じる
+            closeKebabDialog();
+            // 編集画面を開く
+            const selectsqldata = { "sqlString": sqlformdata.sqlString + " AND e.employee_id = " + self.dataset.id + ";", "classPath": sqlformdata.classPath };
+            execEditForm(selectsqldata)
+        }
+        // 削除
+        function removeFunc(self) {
+            // ケバブメニューを閉じる
+            closeKebabDialog();
+            const formdata = structuredClone(formentity);
+            formdata.state = deleteStateCode;
+            exexRemove(formdata, sqllistdata, "/update/staff", "tablelist");
+        }
+        // ダウンロード
+        async function downloadCsvFunc(self) {
+            // ケバブメニューを閉じる
+            closeKebabDialog();
+            // 親要素を取得する
+            const parent = self.closest('.table-container');
+            const down = structuredClone(sqlformdata);
+            down.sqlString += " AND e.employee_id ";
+            const result = execDownloadCsv(parent, down);
+            if (result != null) {
+                const history = { "user_name":username, "table_name":"staffs", "state":"CSVダウンロード", "contents":"成功"}
+                if (result == false) history.contents = "失敗";
+                const data = JSON.stringify(history);
+                await postFetch("/history/save", data, token, "application/json");
+            }
+        }
+        // // 画面更新
+        // function updateFunc() {
+        //     // ケバブメニューを閉じる
+        //     closeKebabDialog();
+        //     // リストデータ更新
+        //     updateList(sqllistdata);
+        // }
+        // サイドバーで要素を選択した時の処理
+        function clickSidebarItem(self) {
+            if (self == null) return;
+            // 選択状態を変更する
+            selectAccordionItem(self);
+            // 画面更新
+            filterDisplay();
+        }
+        // 画面更新時の処理
+        function filterDisplay() {
+            // 選択要素で絞り込む
+            // let list = extractListFromSidebarItem(origin);
+            let list = extractListFromAccordionItem(origin);
+            // 検索ボックスのワードで絞り込む
+            list = extractListFromSearchBox(list);
+            // 画面更新
+            updateListDisplay("tablelist", headerNames, list, "footer-text", true);
+            // // 選択要素で絞り込む
+            // extractListFromAccordionItem();
+            // // 検索ボックスのワードで絞り込む
+            // extractListFromSearchBox();
+            // // 画面更新
+            // updateListDisplay();
+        }
+        // リスト画面の本体部分を作成する
+        function createListContent(tbl, list) {
+            list.forEach(function (item) {
+                let newRow = tbl.insertRow();
+                // ID（Post送信用）
+                newRow.setAttribute('id', 'row00-' + item.employee_id);
+                newRow.setAttribute('name', 'data-row');
+                newRow.setAttribute('data-id', item.employee_id);
+                let timer;
+                // シングルクリック時の処理
+                newRow.onclick = function (e) { 
+                    // チェックボックスの動作を停止させる
+                    e.preventDefault();
+                    // ダブルクリック判定のための時間を空ける
+                    clearTimeout(timer);
+                    timer = setTimeout(() => {
+                        // 時間が経過したらシングルクリックに確定してチェック状態を反転させる
+                        clickCheckBtnManual(item.employee_id, this);
+                    }, 180);
+                }
+                // ダブルクリック時の処理
+                newRow.ondblclick = function (e) { 
+                    // チェックボックスの動作を停止させる
+                    e.preventDefault();
+                    // シングルクリックでは無くなったのでタイマーを停止
+                    clearTimeout(timer);
+                    // フォーム入力画面を表示する
+                    editFunc(this);
+                }
+                // 選択用チェックボックス
+                newRow.insertAdjacentHTML('beforeend', '<td name="chk-cell" class="pc-style"><input id="chk00-' + item.employee_id + '" class="normal-chk" name="chk-box" type="checkbox" value="' + item.employee_id + '"></td>');
+                // ID
+                newRow.insertAdjacentHTML('beforeend', '<td name="id-cell">' + String(item.employee_id).padStart(4, '0') + '</td>');
+                // 名前
+                newRow.insertAdjacentHTML('beforeend', '<td name="name-cell"><span class="kana">' + item.full_name_kana + '</span><br><span>' + item.full_name + '</span></td>');
+                // 会社
+                newRow.insertAdjacentHTML('beforeend', '<td name="company-cell"><span>' + (item.company_name ?? "登録なし") + '</span></td>');
+                // 支店
+                newRow.insertAdjacentHTML('beforeend', '<td name="office-cell"><span>' + (item.office_name ?? "登録なし") + '</span></td>');
+            });
+        }
+        // フォーム画面のコンテント部分を作成
+        function getFormContent(item) {
+            const elmContent = document.createElement('form');
+            elmContent.classList.add('dialog-content');
+            elmContent.setAttribute('id', 'tablelist-form');
+            // DB登録用隠しアイテム
+            elmContent.insertAdjacentHTML('beforeend', '<input name="staff-id" type="hidden" value="' + item.staff_id + '">');
+            elmContent.insertAdjacentHTML('beforeend', '<input name="employee-id" type="hidden" value="' + item.employee_id + '">');
+            elmContent.insertAdjacentHTML('beforeend', '<input name="person-id" type="hidden" value="' + item.person_id + '">');
+            elmContent.insertAdjacentHTML('beforeend', '<input name="code" type="hidden" value="' + item.code + '">');            
+            elmContent.insertAdjacentHTML('beforeend', '<input name="version" type="hidden" value="' + item.version + '">');
+            // 会社取得
+            if (item.company_id == 0) {
+                const selectCategory = document.querySelector('#sidebar-area .accordion:has(p.selected) summary');
+                item.category_id = selectCategory == null ? 0: selectCategory.dataset.id;
+                const selectItem = document.querySelector('#sidebar-area p.selected');
+                item.company_id = selectItem == null ? 0: selectItem.dataset.id;
+                item.company_name = selectItem == null ? "": selectItem.innerText;
+            }
+            elmContent.insertAdjacentHTML('beforeend', '<div class="input-area w100">' + 
+                '<input name="category-id" type="hidden" value="' + item.category_id + '">' + 
+                '<input name="company-id" type="hidden" value="' + item.company_id + '">' + 
+                '<div class="form-parts w100"><label>会社名</label><input disabled name="company-name" class="normal-input frameless" type="text" value="' + (item.company_name ?? "") + '" placeholder="会社名" onfocus="this.select();"></div></div>');
+            // 支店ボックス
+            elmContent.insertAdjacentHTML('beforeend', '<div class="form-parts w40"><label>営業所</label><select name="office" class="normal-select"></select></div>');
+            const officeArea = elmContent.querySelector('select[name="office"]');
+            const combolist = officelist.filter(value => { return value.company_id == item.company_id }).map(item => ({number:item.office_id, text:item.office_name}));
+            createComboBoxWithTop(officeArea, combolist);
+            setComboboxSelected(officeArea, item.office_id);
+            // 氏名入力ボックス
+            elmContent.insertAdjacentHTML('beforeend', '<div class="input-area w100">' + 
+                '<div class="form-parts w50"><label>氏名</label><div class="input-area"><input name="last-name" class="normal-input" type="text" value="' + (item.last_name ?? "") + '" placeholder="姓" onfocus="this.select();">' + 
+                '<input name="first-name" class="normal-input" type="text" value="' + (item.first_name ?? "") + '" placeholder="名" onfocus="this.select();"></div></div>' + 
+                '<div class="form-parts w50"><label>かな</label><div class="input-area"><input name="last-name-kana" class="normal-input" type="text" value="' + (item.last_name_kana ?? "") + '" placeholder="せい" onfocus="this.select();">' + 
+                '<input name="first-name-kana" class="normal-input" type="text" value="' + (item.first_name_kana ?? "") + '" placeholder="めい" onfocus="this.select();"></div></div></div>');
+            // 電話番号入力ボックス
+            elmContent.insertAdjacentHTML('beforeend', '<div class="input-area w100">' + 
+                '<div class="form-parts w30"><label>電話番号</label><input name="phone-number" class="normal-input" type="text" inputmode="numeric" pattern="\\d{2,4}-\\d{2,4}-\\d{3,4}" value="' + (item.tel_number ?? "") + '" placeholder="012-3456-7890" onfocus="this.select();"></div></div>'); 
+            // メールアドレス入力ボックス
+            elmContent.insertAdjacentHTML('beforeend', '<div class="input-area w100">' + 
+                '<div class="form-parts w100"><label>メールアドレス</label><input name="email" class="normal-input" type="email" value="' + (item.email ?? "") + '" placeholder="例）example@kyouseibin.com" onfocus="this.select();"></div></div>');
+            return elmContent;
+        }
+        // 入力チェック
+        function execFormDataCheck() {
+            let msg = "";
+            // 姓が入力されていないとFalseを返す
+            const name = document.querySelector('input[name="last-name"]');
+            if (name != null && name.value == "") msg += '\n姓が入力されていません';
+            // 電話番号チェック
+            const phone = document.querySelector('input[name="phone-number"]');
+            if (!checkPhoneNumber(phone)) msg += '\n電話番号に誤りがあります';
+            // メールアドレスチェック
+            const email = document.querySelector('input[name="email"]');
+            if (!checkMailAddress(email)) msg += '\nメールアドレスに誤りがあります';
+            // エラーが一つ以上あればエラーメッセージダイアログを表示する
+            if (msg != "") {
+                messageDialog(msg, 'エラー', 'red');
+                return false;
+            }
+            return true;
+        }
+        // 作成・更新処理
+        async function execUpdateFormData() {
+            // エラーチェック
+            if (execFormDataCheck() == false) {
+                return;
+            } else {
+                const form = document.getElementById('tablelist-form');
+                const formData = new FormData(form);
+                const formdata = structuredClone(formentity);
+                formdata.staff_id = formData.get('staff-id');
+                formdata.employee_id = formData.get('employee-id');
+                formdata.office_id = formData.get('office');
+                formdata.company_id = formData.get('company-id');
+                formdata.category_id = formData.get('category-id');
+                formdata.code = formData.get('code');
+                formdata.last_name = formData.get('last-name').trim();
+                formdata.first_name = formData.get('first-name').trim();
+                formdata.last_name_kana = formData.get('last-name-kana').trim();
+                formdata.first_name_kana = formData.get('first-name-kana').trim();
+                formdata.phone_number = formData.get('phone-number').trim();
+                formdata.email = formData.get('email').trim();
+                formdata.version = formData.get('version');
+                // 保存処理
+                updateForm(formdata, sqllistdata, "/update/staff", "tablelist");
+            }
+        }
+        // ページ読み込み後の処理
+        window.addEventListener("load", () => {
+            // スピナー表示
+            startProcessing();
+            // 検索ボックス入力時の処理
+            document.getElementById('search-box').addEventListener('search', function(e) {
+                // if (e.target.value == "") list = structuredClone(origin);
+                // if (e.target.value == "") list = [];
+                filterDisplay();
+            }, false);
+            // // 編集用リストを初期化用リストからコピー
+            // list = structuredClone(origin);
+            // サイドバー作成
+            createAccordionSidebar(sidebarparentlist, sidebarchildlist, "営業担当登録（外部）", true);
+            // // サイドバーの先頭アイテムを選択する
+            // selectSidebarToTopOfList(sidebarlist);
+            // 画面更新
+            const list = [];
+            updateListDisplay("tablelist", headerNames, list, "footer-text", true);
+            // updateListDisplay();
+            // スピナー消去
+            processingEnd();
+        });
+    </script>
+</body>
+
+</html>

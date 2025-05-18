@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,viewport-fit=cover">
+
+<head>
+    <meta charset="UTF-8">
+    <link th:href="@{/css/recycle.css}" rel="stylesheet" type="text/css">
+    <style type="text/css">
+        /* .recycleregist-container {
+            min-width: 40rem;
+            max-width: 50rem;
+        } */
+        /* .recycleregist-content {
+            height: 100%;
+            overflow: hidden;
+        } */
+        /* .recycleregist-container>header {
+            position: relative;
+            display: grid;
+            grid-template-columns: 1fr;
+            align-items: center;
+            padding: .5rem 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid var(--br);
+            border-radius: .5rem;
+            padding: 2rem;
+            margin: 0;
+        } */
+        .tablelist-container {
+            width: 40rem;
+        }
+        .tablelist-container>header {
+            grid-template-columns: 1fr;
+        }
+        .recycleregist-header {
+            display: grid;
+            grid-template-columns: 1fr 5rem 5rem;
+            gap: .5rem;
+            margin-bottom: 1rem;
+        }
+        .recycleregist-input {
+            display: grid;
+            gap: .5rem;
+            grid-template-columns: 5rem 8rem 1fr auto;
+            align-items: end;
+        }
+        .recycleregist-input .img-btns {
+            /* display: grid;
+            grid-template-columns: auto auto auto;
+            justify-items: center; */
+            display: flex;
+            align-items: end;
+            margin-bottom: .2rem;
+        }
+        .recycleregist-input .img-btn>img {
+            padding: .2rem;
+            width: 2rem;
+            border-radius: .5rem;
+        }
+        /* .recycleregist-content .normal-list {
+            height: 90%;
+        } */
+        .recycleregist-content .normal-list li {
+            display: grid;
+            grid-template-columns: 5rem 8rem 1fr;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        @media screen and (max-width:560px) {
+            /* .recycleregist-container {
+                width: 100%;
+            } */
+            .tablelist-container.recycle {
+                min-width: 100%;
+                max-width: 100%;
+            }
+            /* .recyclelist-container {
+                width: 100%;
+                overflow-x: hidden;
+            } */
+            /* .tablelist-container header {
+                padding: 0 1rem;
+            } */
+            .recyclelist-inputs {
+                padding: 0;
+            }
+            .recycleregist-header {
+            /* .recyclelist-inputs>.recyclelist-input:first-child { */
+                /* padding: 0 1rem; */
+                grid-template-columns: 1fr 1fr;
+                padding: 0;
+                margin: 0;
+                position: relative;
+            }
+            .recycleregist-header>.search-box {
+                grid-column: 1 / span 2;
+            }
+            .recycleregist-header>.search-box>input {
+                padding: 0 1rem 0 3rem;
+            }
+            .tablelist-container header {
+                padding: 0 2rem 1rem 2rem;
+            }
+            .recycleregist-input {
+                grid-template-columns: 1fr 1fr;
+                row-gap: 0;
+            }
+            .recycleregist-input>.form-dialog-parts:nth-child(3) {
+                grid-column: 1 / span 2;
+            }
+            .recycleregist-input>.img-btns {
+                grid-column: 1 / span 2;
+            }
+            .recycleregist-input>.img-btns>.img-btn {
+                /* width: 3rem; */
+                margin-right: 2rem;
+                text-align: center;
+                justify-items: center;
+            }
+            .recycleregist-input>.img-btns>.img-btn>span {
+                font-size: 60%;
+            }
+            .recycleregist-input .img-btns {
+                margin-top: 1rem;
+            }
+            .breadcrumb {
+                margin-left: 1rem;
+            }
+            .tablelist-container>main {
+                border-top: 3px solid var(--line);
+            }
+            /* .tablelist-container.recycle tr {
+                padding: .5rem 2rem;
+            } */
+            .recycleregist-content .normal-list ul {
+                width: 100vw;
+            }
+            .recycleregist-content .normal-list li {
+                grid-template-columns: 3rem 5rem 1fr;
+            }
+            /* .tablelist-container.recycle tr[name="tablelist-header"]+tr[name="data-row"] {
+                border-top: 1px solid var(--line);
+                border-image: linear-gradient(to right, transparent 5%, lightgrey 5%, lightgrey 95%, transparent 95%) 1;
+            } */
+            /* .tablelist-container.recycle tr td[name="recycle-number"] {
+                font-size: 120%;
+                font-weight: bold;
+                color: var(--theme-blue);
+            } */
+             .search-box>.img-btn {
+                position: absolute;
+                top: .1rem;
+                left: .3rem;
+                width: 2.5rem;
+             }
+        }
+    </style>
+</head>
+
+<body>
+    <div th:replace="~{fragment/main::main-fragment-nosidebar}"></div>
+
+    <script th:src="@{/js/default.js}"></script>
+    <script th:src="@{/js/dialog.js}"></script>
+    <script th:src="@{/js/list.js}"></script>
+    <script th:src="@{/js/recycle.js}"></script>
+    <script type="text/JavaScript" th:inline="JavaScript">
+        const updateStateCode = /*[[${updateStateCode}]]*/;
+        const createStateCode = /*[[${createStateCode}]]*/;
+        const deleteStateCode = /*[[${deleteStateCode}]]*/;
+        const token = /*[[${_csrf.token}]]*/;
+        let origin = [];
+        let list = /*[[${list}]]*/;
+
+// ----------------------------------------------------------------------------------------------------------------------------------
+
+            // 検索ワード（空白区切り）をもとにリストを抽出して画面更新する
+            function createRecycleMakerRegistListFromSearchCriteria(words) {
+                if (list.length == 0) return;
+                let searchlist = structuredClone(list);
+                let list_word = words.split(/\s+/);
+                list_word.forEach(word => {
+                    searchlist = searchlist.filter(value => {
+                        return String(value.recycle_maker_code).includes(word) || value.recycle_maker_name.includes(word) || value.recycle_maker_group.includes(word);
+                    });
+                });
+                const area = document.querySelector('[name="recyclemakerlist-area"]');
+                deleteElements(area);
+                // リスト作成                
+                createRecycleMakerRegistList(searchlist, area);
+            }
+
+            function createRecycleMakerRegistList(items, area) {
+                if (area == null) return;
+                if (items == null) return;
+
+                const parentElm = document.createElement('div');
+                parentElm.classList.add('normal-list','scroll-area');
+                const elmUl = document.createElement('ul');
+                elmUl.setAttribute('name', 'recyclemakerlist-area');
+
+                items.forEach(function (item) {
+                    if (item.state != deleteStateCode) {
+                        let elm = createRecycleMakerRegistListItem(item);
+                        elmUl.insertAdjacentElement('beforeend', elm);
+                    }
+                });
+                parentElm.insertAdjacentElement('beforeend', elmUl);
+                area.insertAdjacentElement('beforeend', parentElm);
+            }
+
+            function createRecycleMakerRegistListItem(item) {
+                const elm = document.createElement('li');
+                elm.onclick = e => selectRecycleMakerRegistItems(e);
+                elm.setAttribute('data-code', item.recycle_maker_code);
+                elm.insertAdjacentHTML('beforeend', '<span>' + item.recycle_maker_code + '</span>');
+                elm.insertAdjacentHTML('beforeend', '<span>' + item.recycle_maker_group + '</span>');
+                elm.insertAdjacentHTML('beforeend', '<span>' + item.recycle_maker_name + '</span>');       
+                return elm;
+            }
+
+            // アイテム追加
+            function createRecycleRegistItem() {
+                if (checkRecycleRegistItemInput() == false) return;
+                const code = document.querySelector('[name="maker-code"]');
+                const group = document.querySelector('[name="maker-group"]');
+                const name = document.querySelector('[name="maker-name"]');
+                const check = list.find(value => { return value.recycle_maker_code == code.value && value.state != deleteStateCode });
+                if (check != null) {
+                    createMessageDialog("そのコードは登録済みです", "エラー", "red");
+                    name.value = "";
+                    code.focus();
+                    return;
+                } 
+                
+                const recycle = { "recycle_maker_id": 0, "recycle_maker_code": code.value, "recycle_maker_group":group.value, "recycle_maker_name": name.value, "state": createStateCode }
+                list.push(recycle);
+
+                const area = document.querySelector('[name="recyclemakerlist-area"]');
+                if (area == null) return;
+                const elm = createRecycleMakerRegistListItem(recycle);
+                area.insertAdjacentElement('beforeend', elm);
+                
+                code.value = "";
+                name.value = "";
+
+                code.focus();
+                area.scrollIntoView(false);
+            }
+
+            // 上書き
+            function updateRecycleRegistItem() {
+                if (checkRecycleRegistItemInput() == false) return;
+                
+                const code = document.querySelector('[name="maker-code"]');
+                const check = list.find(value => { return value.recycle_maker_code == code.value && value.state != deleteStateCode });
+                if (check == null) {
+                    createMessageDialog("そのコードは登録されていません", "エラー", "red");
+                    code.focus();
+                    return;
+                }                
+                const name = document.querySelector('[name="maker-name"]');
+                const group = document.querySelector('[name="maker-group"]');
+                
+                check.recycle_maker_code = code.value;
+                check.recycle_maker_name = name.value;
+                check.recycle_maker_group = group.value;
+                check.state = updateStateCode;
+
+                const area = document.querySelector('[name="recyclemakerlist-area"]');
+                if (area == null) return;
+                const elm = area.querySelector('li.selected');
+                if (elm == null) return;
+                deleteElements(elm);
+                elm.insertAdjacentHTML('beforeend', '<span>' + check.recycle_maker_code + '</span>');
+                elm.insertAdjacentHTML('beforeend', '<span>' + check.recycle_maker_group + '</span>');
+                elm.insertAdjacentHTML('beforeend', '<span>' + check.recycle_maker_name + '</span>');
+                
+                code.value = "";
+                name.value = "";
+
+                code.focus();
+                area.scrollIntoView(elm);
+            }
+
+            // 削除
+            function removeRecycleRegistItem() {
+                const area = document.querySelector('[name="recyclemakerlist-area"]');
+                if (area == null) return;
+                const elm = area.querySelector('li.selected');
+                if (elm == null) return;
+                const code = Number(elm.dataset.code);
+                deleteFullElements(elm);
+
+                const item = list.find(value => { return value.recycle_maker_code == code });
+                if (item == null) return;
+                item.state = deleteStateCode;
+                RecycleMakerInputValueAllClear();
+            }
+
+            // 選択時の処理
+            function selectRecycleMakerRegistItems(e) {
+                const area = document.querySelector('[name="recyclemakerlist-area"]');
+                if (area == null) return;
+
+                const elm = e.currentTarget;
+                // 全ての選択を解除する
+                clearAllSelectInList(area);
+                // クリックしたアイテムを選択状態にする
+                elm.classList.add('selected');
+
+                const parentCode = Number(elm.dataset.code);
+                const item = list.find( value => { return value.recycle_maker_code == parentCode })
+                if (item == null) return;
+                const code = document.querySelector('[name="maker-code"]');
+                if (code == null) return;
+                code.value = item.recycle_maker_code;
+                const name = document.querySelector('[name="maker-name"]');
+                if (name == null) return;
+                name.value = item.recycle_maker_name;
+                const group = document.querySelector('[name="maker-group"]');
+                if (group == null) return;
+                group.value = item.recycle_maker_group;
+            }
+
+            // 入力チェック
+            function checkRecycleRegistItemInput() {
+                const code = document.querySelector('[name="maker-code"]');
+                if (code == null) return false;
+                if (code.value == "") {
+                    createMessageDialog("コードが入力されていません", "エラー", "red");
+                    code.focus();
+                    return false;
+                }
+                if (isNaN(code.value)) {
+                    createMessageDialog("コードは半角数値で入力してください", "エラー", "red");
+                    code.focus();
+                    return false;
+                }
+                if (code.value.length != 3) {
+                    createMessageDialog("コードは3桁で入力してください", "エラー", "red");
+                    code.focus();
+                    return false;
+                }
+                const name = document.querySelector('[name="maker-name"]');
+                if (name == null) return false;
+                if (name.value == "") {
+                    createMessageDialog("製造業者等名が入力されていません", "エラー", "red");
+                    name.focus();
+                    return false;
+                }
+                const group = document.querySelector('[name="maker-group"]');
+                if (group == null) return false;
+
+                return true;
+            }
+
+            // リセット処理
+            function execResetRecycleRegist() {
+                startProcessing();
+
+                list = structuredClone(origin);
+                
+                // const area = document.getElementById('recyclemakerregist-area')
+                const area = document.querySelector('[name="recycleregist-area"]')
+                deleteElements(area);
+                // リスト作成                
+                createRecycleMakerRegistList(list, area);
+                RecycleMakerInputValueAllClear();
+                const code = document.querySelector('[name="maker-code"]');
+                if (code != null) code.focus();
+                
+                processingEnd();
+            }
+
+            // 入力ボックス初期化
+            function RecycleMakerInputValueAllClear() {
+                const code = document.querySelector('[name="maker-code"]');
+                const name = document.querySelector('[name="maker-name"]');
+                const group = document.querySelector('[name="maker-group"]');
+
+                code.value = "";
+                name.value = "";
+                group.selectedIndex = 0;
+            }
+
+            function execMakerCodeInputChanged(e) {
+                if (e.target.value == "") return;
+
+                if(e.key === 'Enter'){
+                    e.preventDefault();                    
+                    const code = document.querySelector('[name="maker-code"]');
+                    if (code.value == "" || isNaN(code.value) || code.value.length != 3) return;
+                    const check = list.find(value => { return value.recycle_maker_code == code.value && value.state != deleteStateCode });
+                    if (check != null) {
+                        createMessageDialog("そのコードは登録済みです", "エラー", "red");
+                        name.value = "";
+                        code.focus();
+                        return;
+                    } else {
+                        const nextBlock = document.querySelector('[name="maker-group"]');
+                        if (nextBlock != null) nextBlock.focus();
+                    }
+                }
+            }
+
+            // 保存時の処理
+            async function execSaveRecycleRegist() {
+                await execSaveRegistListAfterLoadingList("/recycle/maker/save", "/list/recycle/maker")
+            }
+
+// 初期化時の処理 ------------------------------------------------------------------------------------------------------------------------------------
+            // 読み込み時の処理
+            window.addEventListener("load", () => {
+                // 検索ボックスでエンターキーが押された時の処理を登録
+                document.getElementById('search-box').addEventListener('search', function(e) {
+                    //　✖️が押された時の処理
+                    if ( this.value.length === 0 ) {
+                        execResetRecycleRegist();
+                    } else {
+                        createRecycleMakerRegistListFromSearchCriteria(this.value);
+                    }
+                }, false);
+
+                // リサイクル券番号入力ボックスでエンターキーが押された時の処理を登録
+                document.querySelector('[name="maker-code"]').addEventListener('keydown', function (e) { execMakerCodeInputChanged(e); });
+
+                // 編集用リストを初期化用リストにコピー
+                origin = structuredClone(list);
+
+                // リスト作成
+                // const area = document.getElementById('recyclemakerregist-area')
+                const area = document.querySelector('[name="recycleregist-area"]')
+                createRecycleMakerRegistList(list, area);
+
+                // 処理が終了したらスピナーを消去する
+                processingEnd();
+            });
+
+            window.addEventListener('beforeunload', (e) => {
+                const check = list.find(value => { return value.state != 0 });
+                if (check != null) {
+                    const message = '保存されていないデータがあります。ページを離れますか？';
+                    e.preventDefault();
+                    e.returnValue = message;
+                    return message;
+                }
+            });
+            
+        </script>
+    </div>
+</body>
+
+</html>

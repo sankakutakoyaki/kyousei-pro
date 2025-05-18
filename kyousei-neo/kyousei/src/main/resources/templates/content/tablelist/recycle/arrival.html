@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{layout/tablelist}">
+
+<head>
+    <title>リサイクル入荷登録</title>
+    <style type="text/css">
+        /* PC表示のみ */
+        @media screen and (min-width:561px) {
+            .table-container {
+                max-width: 45rem;
+            }
+            .normal-table tr {
+                grid-template-columns: 3rem 12rem 10rem 1fr 1rem;
+            }
+            .form-dialog {
+                width: 30rem;
+            }
+            .table-container>header {
+                grid-template-columns: 1fr auto;
+                column-gap: 1rem;
+            }
+        }
+        /* スマホ表示のみ */
+        @media screen and (max-width:560px) {
+            .table-container {
+                max-width: 100%;
+            }
+            .normal-table tr {
+                grid-template-columns: 1fr;
+                height: fit-content;
+                padding: 1.5rem;
+            }
+            /* .normal-table tr td[name="id-cell"]::before {
+                content: "ID : ";
+            } */
+            /* .normal-table tr td[name="code-cell"]::before {
+                content: "コード : ";
+            } */
+            /* .normal-table tr td[name="category-cell"]::before {
+                content: "分類 : ";
+            } */
+            /* .normal-table tr td[name="name-cell"] {
+                font-size: 1.2rem;
+                font-weight: bold;
+                margin-bottom: .5rem;
+            } */
+            .form-dialog {
+                width: 100%
+            }
+        }
+    </style>
+</head>
+
+<body layout:fragment="layout-body">
+    <div class="normal-body">
+        <div class="table-container">
+            <!-- パンくずリスト -->
+            <div
+                th:with="breadcrumbs=${ { {url:'/' ,label:'ホーム'},{url:'/recycle', label:'リサイクル'},{url:'', label:'入荷'} } }">
+                <div th:replace="~{fragment/main::breadcrumb-fragment(${breadcrumbs})}"></div>
+            </div>
+            <!-- ヘッダー -->
+            <header class="input-area tablelist-recycle w100">
+                <div class="form-parts w25">
+                    <label>日付</label>
+                    <input name="arrival-date" class="normal-input" type="date" value="" onfocus="this.select();">
+                </div>
+                <div class="form-parts w75">
+                    <label>お問合せ管理票番号</label>
+                    <div class="input-area">
+                        <div class="form-parts w40">
+                            <input name="start-recycle-number" class="normal-input" type="text" inputmode="numeric" pattern="\d*" maxlength="15" value="" onfocus="this.select();">
+                            <div name="camera-btn" class="img-btn" onclick="execCamera(this)">
+                                <img title="追加" src="/icons/camera.png">
+                            </div>
+                        </div>
+                        <span>〜</span>
+                        <div class="form-parts w40">
+                            <input name="end-recycle-number" class="normal-input" type="text" inputmode="numeric" pattern="\d*" maxlength="15" value="" onfocus="this.select();">
+                            <div name="camera-btn" class="img-btn" onclick="execCamera(this)">
+                                <img title="追加" src="/icons/camera.png">
+                            </div>
+                        </div>
+                        <div class="form-parts w15">
+                            <button name="number-search-btn" class="normal-btn ok" type="button" onclick="execSearchRecycleNumber()">                        
+                                <span>登録</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            <!-- コンテンツ -->
+            <main id="scroll-area">
+                <table id="tablelist" class="normal-table">
+                    <tbody></tbody>
+                </table>
+                <button type="button" class="page-top"></button>
+            </main>
+            <!-- フッター -->
+            <footer id="footer-text" class="pc-style"><span></span></footer>
+        </div>
+    </div>
+    <script th:src="@{/js/default.js}"></script>
+    <script th:src="@{/js/tablelist.js}"></script>
+    <script th:src="@{/js/recycle.js}"></script>
+    <script type="text/javascript" src="https://serratus.github.io/quaggaJS/examples/js/quagga.min.js"></script>
+    <script type="text/JavaScript" th:inline="JavaScript">
+        const token = /*[[${_csrf.token}]]*/;
+        const sidebarlist = /*[[${sidebarlist}]]*/; // サイドバーリスト用
+        const sqldata = /*[[${sqldata}]]*/; // 取得用エンティティ
+        const deleteStateCode = /*[[${deleteStateCode}]]*/; // 削除用コード
+        const headerNames = ['', 'お問合せ管理票番号', '入荷日', '営業所'];
+        let origin = /*[[${origin}]]*/; // 初期リスト記憶用
+        let simpledata = /*[[${simpledata}]]*/; // Sql実行用エンティティ
+
+        // 削除
+        function removeFunc(self) {
+            // ケバブメニューを閉じる
+            closeKebabDialog();
+            // 親要素を取得する
+            const parent = self.closest('.table-container');
+            // 削除用SQL文作成（後部にIN句がつく）
+            simpledata.text = "UPDATE recycle SET state = " + deleteStateCode + " WHERE recycle_id ";
+            execRemove(parent, simpledata);
+        }
+        // 画面更新
+        function updateFunc() {
+            // ケバブメニューを閉じる
+            closeKebabDialog();
+            // リストデータ更新
+            updateList(sqllistdata);
+        }
+        // サイドバーで要素を選択した時の処理
+        function clickSidebarItem(self) {
+            if (self == null) return;
+            // 選択状態を変更する
+            selectSidebarItem(self);
+            // 画面更新
+            filterDisplay();
+        }
+        // 画面更新時の処理
+        function filterDisplay() {
+            // 選択要素で絞り込む
+            let list = extractListFromSidebarItem(origin);
+            // 画面更新
+            updateListDisplay("tablelist", headerNames, list, "footer-text", false);
+        }
+        // リスト画面の本体部分を作成する
+        function createListContent(tbl, list) {
+            list.forEach(function (item) {
+                let newRow = tbl.insertRow();
+                // ID（Post送信用）
+                newRow.setAttribute('id', 'row00-' + item.recycle_id);
+                newRow.setAttribute('name', 'data-row');
+                newRow.setAttribute('data-id', item.recycle_id);
+                let timer;
+                // クリック時の処理
+                newRow.onclick = function (e) { 
+                    // チェックボックスの動作を停止させる
+                    e.preventDefault();
+                    // 時間が経過したらシングルクリックに確定してチェック状態を反転させる
+                    clickCheckBtnManual(item.recycle_id, this);
+                }
+                // 調整用セル
+                newRow.insertCell();
+                // 選択用チェックボックス
+                newRow.insertAdjacentHTML('beforeend', '<td name="chk-cell" class="pc-style"><input id="chk00-' + item.recycle_id + '" class="normal-chk" name="chk-box" type="checkbox" value="' + item.recycle_id + '"></td>');
+                // リサイクル番号
+                newRow.insertAdjacentHTML('beforeend', '<td name="number-cell">' + item.recycle_number + '</td>');
+                // 入荷日
+                newRow.insertAdjacentHTML('beforeend', '<td name="date-cell"><span>' + item.arrival_date + '</span></td>');
+                // 営業所
+                newRow.insertAdjacentHTML('beforeend', '<td name="office-cell">' + item.arrival_office_name + '</td>');
+            });
+        }
+        // 入力チェック
+        function execUpdateDataCheck() {
+            // let msg = "";
+            // // 名前が入力されていないとFalseを返す
+            // const name = document.querySelector('input[name="recycle"]');
+            // if (name != null && name.value == "") msg += '\n会社名が入力されていません';
+            // // エラーがあればエラーメッセージダイアログを表示する
+            // if (msg != "") {
+            //     messageDialog(msg, 'エラー', 'red');
+            //     return false;
+            // }
+            return true;
+        }
+        // // 作成・更新処理
+        // async function execUpdateData() {
+        //     // エラーチェック
+        //     if (execSaveDataCheck() == false) {
+        //         return;
+        //     } else {
+        //         // 保存処理
+        //         simpledata.text = "INSERT INTO recycle (recycle_number) VALUES ('" + recycle-number + "')";
+        //         updateData(sqldata, simpledata, "tablelist");
+        //     }
+        // }
+        // 日付の確認　今日より大きい日付は今日に直す
+        async function checkUsedateChanged(e) {
+            if (e.target.value > new Date().toLocaleDateString('sv-SE')) {
+                e.target.value = new Date().toLocaleDateString('sv-SE');
+            } else {
+                // list = await getRecycleRegistList();
+                // updateRecycleDisplay();
+            }
+        }
+        // ページ読み込み後の処理
+        window.addEventListener("load", () => {
+            // スピナー表示
+            startProcessing();
+            // リサイクル券番号入力ボックスでエンターキーが押された時の処理を登録
+            document.querySelector('[name="start-recycle-number"]').addEventListener('keydown', function (e) { execRecycleNumberInputChanged(e); });
+            // リサイクル券番号入力ボックスのフォーカスが外れた時の処理を登録
+            document.querySelector('[name="start-recycle-number"]').addEventListener('blur', function (e) { execRecycleNumberInputBlur(e); });
+            // 使用日が変更された時の処理を登録
+            const usedate = document.querySelector('[name="arrival-date"]');
+            if (usedate != null) {
+                usedate.addEventListener("change", async (e) => { await checkUsedateChanged(e) });
+                // sv-SEロケールはYYYY-MM-DD形式の日付文字列を戻す
+                usedate.value = new Date().toLocaleDateString('sv-SE');
+            }
+            // 編集用リストを初期化用リストからコピー
+            list = structuredClone(origin);
+            // サイドバーリストの先頭に[全て表示]を追加する
+            addAllSelectionsToTopOfList(sidebarlist);
+            // サイドバー作成
+            createSidebar(sidebarlist, "入荷登録");
+            // サイドバーの先頭アイテムを選択する
+            selectSidebarToTopOfList();
+            // 画面更新
+            updateListDisplay("tablelist", headerNames, list, "footer-text", false);
+            // スピナー消去
+            processingEnd();
+        });
+    </script>
+</body>
+
+</html>

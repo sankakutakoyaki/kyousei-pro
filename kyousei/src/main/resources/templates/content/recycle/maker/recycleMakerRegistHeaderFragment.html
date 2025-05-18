@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns="http://www.thymeleaf.org">
+
+<body>
+    <!-- 登録画面リスト用ヘッダー -->
+    <header th:fragment="regist-header-fragment">
+        <div class="recycleregist-header">
+            <!-- 検索ボックス -->
+            <div class="search-box">
+                <input id="search-box" type="search" placeholder="検索">
+                <!-- 検索ボタン -->
+                <div class="img-btn sp-style" onclick="execResetRecycleRegist()">
+                    <img title="検索" src="/icons/search.png">
+                </div>
+            </div>
+            <!-- 保存ボタン -->
+            <button name="save-btn" class="normal-btn ok pc-style" type="button" onclick="execSaveRecycleRegist()">
+                <span>保存</span>
+            </button>
+            <!-- リセットボタン -->
+            <button name="cancel-btn" class="normal-btn cancel pc-style" type="button" onclick="execResetRecycleRegist()">
+                <span>リセット</span>
+            </button>
+        </div>
+
+        <div class="recycleregist-input">
+            <div class="form-dialog-parts">
+                <label>コード</label>
+                <input name="maker-code" class="normal-input" type="text" inputmode="numeric" pattern="\d*" maxlength="3" value="" onfocus="this.select();">
+            </div>
+            <div class="form-dialog-parts">
+                <label>グループ</label>
+                <select name="maker-group" class="normal-select" type="text" value="">
+                    <option value="A">A</option>
+                    <option value="B">B</option>
+                    <option value="指定法人">指定法人</option>
+                </select>
+            </div>
+            <div class="form-dialog-parts">
+                <label>略称</label>
+                <input name="maker-name" class="normal-input" type="text" value="" onfocus="this.select();">
+            </div>
+            <div class="img-btns">
+                <!-- 新規作成ボタン -->
+                <div class="img-btn" onclick="createRecycleRegistItem()">
+                    <img title="追加" src="/icons/add.png"><span class="sp-style">追加</span>
+                </div>
+                <!-- 上書きボタン -->
+                <div class="img-btn" onclick="updateRecycleRegistItem()">
+                    <img title="上書き" src="/icons/update.png"><span class="sp-style">上書き</span>
+                </div>
+                <!-- 削除ボタン -->
+                <div class="img-btn" onclick="removeRecycleRegistItem()">
+                    <img title="削除" src="/icons/dust.png"><span class="sp-style">削除</span>
+                </div>
+                <!-- リセットボタン -->
+                <div class="img-btn" onclick="execResetRecycleRegist()">
+                    <img title="リセット" src="/icons/uturn.png"><span class="sp-style">リセット</span>
+                </div>
+            </div>
+        </div>
+
+    </header>
+
+</body>
+
+</html>

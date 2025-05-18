@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{layout/tablelist}">
+
+<head>
+    <title>リサイクル一覧</title>
+    <style type="text/css">
+        .normal-sidebar {
+            width: 25rem;
+        }
+        .table-container {
+            width: 60rem;
+        }
+        .dialog-content.recycle {
+            width: 30rem;
+        }
+        .normal-table tr {
+            grid-template-columns: 3rem 10rem 14rem 7rem 1fr;
+        }
+        .form-parts:has(.recycle-number) {
+            width: 12rem;
+        }
+        .sidebar-recycle p {
+            /* border-bottom: 1px solid var(--br); */
+            /* padding: .5rem 0; */
+            padding-top: 1rem;
+            font-size: 110%;
+            font-weight: bold;
+        }
+        .input-area.img-btn-area {
+            align-self: end;
+            column-gap: 0;
+        }
+        .input-area.img-btn-area .img-btn {
+            width: 2.5rem;
+        }
+        .input-area.img-btn-area .img-btn>img {
+            padding: .3rem;
+        }
+        .kebab-parts {
+            margin-left: 3rem;
+        }
+        @media screen and (max-width:1240px) {
+            .normal-sidebar {
+                width: 22rem;
+            }
+            .table-container {
+                width: 46rem;
+            }
+        }
+        @media screen and (max-width:560px) {
+            .table-container {
+                width: 100%;
+            }
+            .normal-table tr {
+                grid-template-columns: 1fr;
+                height: fit-content;
+                padding: 1.5rem;
+            }
+            .normal-table tr td[name="recycle-number"] {
+                font-weight: bold;
+                font-size: 140%;
+                margin-bottom: .5rem;
+            }
+        }
+    </style>
+</head>
+
+<body layout:fragment="layout-body">
+    <div class="normal-body">
+        <div class="table-container">
+            <!-- パンくずリスト -->
+            <div
+                th:with="breadcrumbs=${ { {url:'/' ,label:'ホーム'},{url:'/recycle', label:'リサイクル'},{url:'', label:'一覧'} } }">
+                <div th:replace="~{fragment/main::breadcrumb-fragment(${breadcrumbs})}"></div>
+            </div>
+            <!-- ヘッダー -->
+            <header>
+                <div class="input-area">
+                    <div class="form-parts">
+                        <!-- <label>日付</label> -->
+                        <div class="input-area">
+                            <select name="date-class" class="normal-select"></select>
+                            <input name="date" class="normal-input date-area" type="date" value="" onfocus="this.select();">
+                            <div class="form-parts">
+                                <button name="search-btn" class="normal-btn ok" type="button" onclick="execSearch()"><span>検索</span></button>
+                            </div>
+                        </div>
+                    </div>
+                    <div th:replace="~{fragment/header::header-btns-recycle-fragment}"></div>
+                </div>
+            </header>
+            <!-- コンテンツ -->
+            <main id="scroll-area">
+                <table id="tablelist" class="normal-table">
+                    <tbody></tbody>
+                </table>
+                <button type="button" class="page-top"></button>
+            </main>
+            <!-- フッター -->
+            <footer id="footer-text" class="pc-style"><span></span></footer>
+        </div>
+    </div>
+
+    <script th:src="@{/js/default.js}"></script>
+    <script th:src="@{/js/tablelist.js}"></script>
+    <script th:src="@{/js/recycle.js}"></script>
+    <script type="text/javascript" src="https://serratus.github.io/quaggaJS/examples/js/quagga.min.js"></script>
+    <script type="text/JavaScript" th:inline="JavaScript">
+        const token = /*[[${_csrf.token}]]*/;
+        const makerlist = /*[[${makerlist}]]*/;
+        const classlist = /*[[${classlist}]]*/;
+        const pricelist = /*[[${pricelist}]]*/;
+        const companycombolist = /*[[${companycombolist}]]*/;
+        const officecombolist = /*[[${officecombolist}]]*/;
+        const sqldata = /*[[${sqldata}]]*/; // リスト再取得用エンティティ
+        let origin = /*[[${origin}]]*/;
+        const headerNames = ['お問合せ管理票番号', '品目/製造業者等名', '使用/引渡日', '小売業者'];
+        const username = /*[[${username}]]*/;
+        
+// ----------------------------------------------------------------------------------------------------------------------------------
+        // テーブルリストのコンテント画面を作成する
+        function createListContent(tbl, list) {
+            list.forEach(function (item) {
+                let newRow = tbl.insertRow();
+                // ID（Post送信用）
+                newRow.setAttribute('id', 'row00-' + item.recycle_id);
+                newRow.setAttribute('name', 'data-row');
+                newRow.setAttribute('data-id', item.recycle_id);
+                let timer;
+                // シングルクリック時の処理
+                newRow.onclick = function (e) { 
+                    // チェックボックスの動作を停止させる
+                    e.preventDefault();
+                    // ダブルクリック判定のための時間を空ける
+                    clearTimeout(timer);
+                    timer = setTimeout(() => {
+                        // 時間が経過したらシングルクリックに確定してチェック状態を反転させる
+                        clickCheckBtnManual(item.recycle_id, this);
+                    }, 180);
+                }
+                // ダブルクリック時の処理
+                newRow.ondblclick = function (e) { 
+                    // チェックボックスの動作を停止させる
+                    e.preventDefault();
+                    // シングルクリックでは無くなったのでタイマーを停止
+                    clearTimeout(timer);
+                }
+                // 選択用チェックボックス
+                newRow.insertAdjacentHTML('beforeend', '<td name="chk-cell" class="pc-style"><input id="chk00-' + item.recycle_id + '" class="normal-chk" name="chk-box" type="checkbox" value="' + item.recycle_id + '"></td>');
+                // リサイクル券番号
+                newRow.insertAdjacentHTML('beforeend', '<td name="recycle-number"><span>' + (item.recycle_number ?? "0000-00000000-0") + '</span></td>');
+                // 品目・製造業者等名
+                newRow.insertAdjacentHTML('beforeend', '<td><span>' + (item.class_name ?? "-----") + '</span><br><span>' + (item.maker_name ?? "-----") + '</span></td>');
+                // 使用日・引渡日
+                newRow.insertAdjacentHTML('beforeend', '<td><span>' + (item.use_date ?? "-----") + '</span><br><span>' + (item.delivery_date ?? "-----") + '</span></td>');
+                // 小売業者
+                newRow.insertAdjacentHTML('beforeend', '<td><span>' + (item.use_company_name ?? "-----") + '</span><br><span>' + (item.use_office_name ?? "-----") + '</span></td>');
+            });
+        }
+        function getIds() {
+            // 親要素（tablelist-container）を取得する
+            const parent = document.querySelector('.table-container');
+            // SQL文を取得する（選択されていなければ[NULL]が返る）
+            const ids = getAllSelectedInCheckbox(parent);
+            if (ids.length == 0) {
+                messageDialog('選択されていません', 'エラー', 'red');
+                return false;
+            }
+            return ids;
+        }
+        // 編集
+        function execEdit() {
+            // ケバブメニューを閉じる
+            closeKebabDialog();
+            // 選択した要素のIDリストを取得
+            const ids = getIds();
+            if (ids == false) return;
+            // 編集画面を開く
+            execEditForm(ids);
+        }
+        // 削除
+        async function execDelete() {
+            // ケバブメニューを閉じる
+            closeKebabDialog();
+            // 選択した要素のIDリストを取得
+            const ids = getIds();
+            if (ids == false) return;
+            // 削除処理
+            const data = JSON.stringify(ids);
+            const resultResponse = await postFetch("/delete/recycle", data, token, "application/json");
+            const result = await resultResponse.json();
+            if (result == 0) {
+                messageDialog("削除できませんでした", 'エラー', 'red');
+            } else {
+                messageDialog("削除しました", '成功', 'blue');
+                // 画面更新
+                updateRecycleList();
+            }
+        }
+        // ダウンロード
+        async function execDownload() {
+            // ケバブメニューを閉じる
+            closeKebabDialog();
+            // 親要素を取得する
+            const parent = document.querySelector('.table-container');
+            const down = structuredClone(sqldata);
+            down.sqlString += " AND r.recycle_id ";
+            const result = execDownloadCsv(parent, down);
+            if (result != null) {
+                const history = { "user_name":username, "table_name":"recycle", "state":"CSVダウンロード", "contents":"成功"}
+                if (result == false) history.contents = "失敗";
+                const data = JSON.stringify(history);
+                await postFetch("/history/save", data, token, "application/json");
+            }
+        }
+        // リサイクル券番号入力ボックスからフォーカスが外れた時の処理
+        function execRecycleNumberBlur(e) {
+            if (e.target.value == "") {
+                const number = document.querySelector('#sidebar-area input[name="recycle-number"]');
+                number.value = "";
+                return;
+            }
+            checkRecycleNumber(e.target);
+        }
+        // リサイクル券番号入力ボックスでエンターを押した時の処理
+        function execRecycleNumberChanged(e) {
+            // ボックスが空白なら処理しない
+            if (e.target.value == "") return;
+            if(e.key === 'Enter'){
+                e.preventDefault();
+                const nextBlock = document.querySelector('#sidebar-area button[name="seach-btn"]');
+                const number = document.querySelector('#sidebar-area input[name="recycle-number"]');
+                if (nextBlock == null || number == null) return;
+                // 番号が正しいかチェック
+                checkRecycleNumber(number);
+                if (number.value != "") {
+                    nextBlock.focus();
+                } else {
+                    number.value = "";
+                    number.focus();
+                }
+            }
+        }
+        // リサイクル券を検索
+        async function execSearchRecycleNumber() {
+            const number = document.querySelector('#sidebar-area input[name="recycle-number"]');
+            if (number == null) return;
+
+            const sql = {"sqlString":sqldata.sqlString + " AND r.recycle_number = '" + number.value + "';", "classPath":sqldata.classPath}
+            const data = JSON.stringify(sql);
+            const result = await postFetch('/sql/get/list', data, token, 'application/json');
+            origin = await result.json();
+            if (origin == null || origin.length == 0) {
+                messageDialog("データがありません", 'エラー', 'red');
+                number.value = "";
+                return;
+            }
+            const entity = structuredClone(origin[0]);
+            const date = document.querySelector("[name='date']");
+            if (date == null) return;
+            const state = document.querySelector("[name='date-class']");
+            if (state == null) return;
+            if (state.value == 1) {
+                date.value = entity.regist_date;
+            } else {
+                date.value = entity.use_date;
+            }
+            resetExtractBox();
+        }
+        // 品目コード入力ボックスからフォーカスが外れた時の処理
+        function execClassCodeBlur(e, idName, nextName) {                
+            if (e.target.value == "") {
+                // const area = document.getElementById(idName);
+                // const name = area.querySelector('input[name="class-name"]');
+                // name.value = "";
+                // execPriceInput(idName);
+                execClassCodeChanged(e, idName, nextName)
+                return;
+            }
+            // 番号が正しいかチェック
+            checkClassCode(e, idName, nextName);
+        }
+        // 品目コード入力ボックスでエンターが押された時の処理
+        function execClassCodeChanged(e, idName, nextName) {
+            const area = document.getElementById(idName);
+            // ボックスが空白の時の処理
+            if (e.target.value == "") {
+                const name = area.querySelector('input[name="class-name"]');
+                name.value = "";
+                execPriceInput(idName);
+                return;
+            }
+            if(e.key === 'Enter'){
+                e.preventDefault();
+                const code = area.querySelector('input[name="class-code"]');
+                if (code == null) return;
+                // 番号が正しいかチェック
+                checkClassCode(e, idName, nextName);
+            }
+        }
+        // コードが正しいかチェック　正しければ名称を[class-name]ボックスに代入
+        function checkClassCode(e, idName, nextName) {
+            const area = document.getElementById(idName);
+            const name = area.querySelector('input[name="class-name"]');
+            if (name == null) return;
+            // コードが正しいかチェック
+            if (classlist == null || e.target.value.length != 2 || isNaN(e.target.value) == true) {
+                e.target.value = "";
+                name.value = "";
+                e.target.focus();
+                return;
+            }
+            // クラスリストから該当のアイテムを検索
+            const item = classlist.find(value => { return value.recycle_class_code == e.target.value});
+            if (item != null) {
+                name.value = item.recycle_class_name;
+                const next = area.querySelector(nextName);
+
+                execPriceInput(idName);
+
+                next.focus();
+            } else {
+                e.target.value = "";
+                name.value = "";
+                e.target.focus();
+            }
+        }
+        // メーカーコード入力ボックスからフォーカスが外れた時の処理
+        function execMakerCodeBlur(e, idName, nextName) {                
+            if (e.target.value == "") {
+                // const area = document.getElementById(idName);
+                // const name = area.querySelector('input[name="maker-name"]');
+                // name.value = "";
+                execMakerCodeChanged(e, idName, nextName)
+                return;
+            }
+            // 番号が正しいかチェック
+            checkMakerCode(e, idName, nextName);
+        }
+        // メーカーコード入力ボックスでエンターが押された時の処理
+        function execMakerCodeChanged(e, idName, nextName) {
+            const area = document.getElementById(idName);
+            // ボックスが空白なら処理しない
+            if (e.target.value == "") {
+                const name = area.querySelector('input[name="maker-name"]');
+                name.value = "";
+                execPriceInput(idName);
+                return;
+            }
+            if(e.key === 'Enter'){
+                e.preventDefault();
+                const code = area.querySelector('input[name="maker-code"]');
+                if (code == null) return;
+                // 番号が正しいかチェック
+                checkMakerCode(e, idName, nextName);
+            }
+        }
+        // コードが正しいかチェック　正しければ名称を[maker-name]ボックスに代入
+        function checkMakerCode(e, idName, nextName) {
+            const area = document.getElementById(idName);
+            const name = area.querySelector('input[name="maker-name"]');
+            if (name == null) return;
+            // コードが正しいかチェック
+            if (makerlist == null || e.target.value.length != 3 || isNaN(e.target.value) == true) {
+                e.target.value = "";
+                name.value = "";
+                e.target.focus();
+                return;
+            }
+            // メーカーリストから該当のアイテムを検索
+            const item = makerlist.find(value => { return value.recycle_maker_code == e.target.value});
+            if (item != null) {
+                name.value = item.recycle_maker_name;
+
+                // const code = area.querySelector('input[name="class-code"]');
+                execPriceInput(idName);
+
+                const next = area.querySelector(nextName);
+                next.focus();
+            } else {
+                e.target.value = "";
+                name.value = "";
+                e.target.focus();
+            }
+        }
+        // 品目・メーカーコードから金額を[price]に代入
+        function execPriceInput(idName) {
+            const area = document.getElementById(idName);
+            if (area == null) return;
+            const priceBox = area.querySelector('input[name="price"]');
+            if (priceBox == null) return;
+            const taxBox = area.querySelector('input[name="ex-tax"]');
+            if (taxBox == null) return;
+            const makerCode = area.querySelector('input[name="maker-code"]');
+            if (makerCode == null) return;
+            const classCode = area.querySelector('input[name="class-code"]');
+            if (classCode == null) return;
+            if (makerCode.value == "" || classCode.value == "") {
+                priceBox.value = "";
+                taxBox.value = "";
+            } else {
+                const item = pricelist.find(function(value) { return value.recycle_maker_code == makerCode.value && value.recycle_price_code == classCode.value});
+                priceBox.value = item == null ? 0: item.price;
+                taxBox.value = item == null ? 0: item.ex_tax;
+            }
+        }
+        // 日付の確認　今日より大きい日付は今日に直す
+        function checkDateChanged(e) {
+            if (e.currentTarget.value > new Date().toLocaleDateString('sv-SE')) {
+                e.currentTarget.value = new Date().toLocaleDateString('sv-SE');
+            }
+            // updateRecycleList();
+        }
+        // 選択した会社の支店をコンボボックスに登録する
+        function createOfficeCombo(self) {
+            const selectId = self.value;
+            const combolist = officecombolist.filter(value => { return value.company_id == selectId }).map(item => ({number:item.office_id, text:item.office_name}));
+            const area = document.getElementById('sidebar-area');
+            const officeArea = area.querySelector('select[name="office"]');
+            deleteElements('office-combo');
+            createComboBoxWithTop(officeArea, combolist);
+        }
+        // サイドバーを作成する
+        function createInputSidebar() {
+            const area = document.getElementById('sidebar-area');
+            if (area == null) return;
+            const form = document.createElement('form');
+            form.setAttribute('id', 'sidebar-form');
+            form.classList.add('sidebar-recycle');
+            // お問合せ管理票番号
+            form.insertAdjacentHTML('beforeend', '<div class="form-parts"><label>お問合せ管理票番号</label>' +
+                                    '<div class="input-area"><div class="input-area"><input name="recycle-number" class="normal-input recycle-number" type="text" inputmode="numeric" pattern="\d*" maxlength="15" value="" onfocus="this.select();">' +
+                                    '<div name="camera-btn" class="img-btn" onclick="execCamera(this)"><img title="追加" src="/icons/camera.png"></div></div>' +
+                                    '<div class="form-parts"><button name="search-btn" class="normal-btn ok" type="button" onclick="execSearchRecycleNumber()"><span>番号検索</span></button></div></div>');
+            form.insertAdjacentHTML('beforeend', '<p>抽出条件</p>');
+            // 小売業者名
+            const company = '<div class="form-parts w100"><label>小売業者名</label><select name="company" class="normal-select"></select></div>';
+            const office = '<div class="form-parts w100"><select id="office-combo" name="office" class="normal-select"></select></div>';
+            form.insertAdjacentHTML('beforeend', company + office);
+            const companyArea = form.querySelector('select[name="company"]');
+            createComboBoxWithTop(companyArea, companycombolist);
+            companyArea.onchange = function() { createOfficeCombo(this) };
+            // 品目
+            const classLabel = '<div class="form-parts"><label>品目</label><div class="input-area">';
+            const classCode = '<div class="form-parts w20"><input name="class-code" class="normal-input" type="text" inputmode="numeric" pattern="\d*" maxlength="2" value="" onfocus="this.select();"></div>';
+            const className = '<div class="form-parts w80"><input name="class-name" class="normal-input" type="text" value="" disabled></div></div>';
+            form.insertAdjacentHTML('beforeend', classLabel + classCode + className);
+            // 略称
+            const makerLabel = '<div class="form-parts"><label>製造業者等名</label><div class="input-area">';
+            const makerCode = '<div class="form-parts w20"><input name="maker-code" class="normal-input" type="text" inputmode="numeric" pattern="\d*" maxlength="3" value="" onfocus="this.select();"></div>';
+            const makerName = '<div class="form-parts w80"><input name="maker-name" class="normal-input" type="text" value="" disabled></div></div>';
+            form.insertAdjacentHTML('beforeend', makerLabel + makerCode + makerName);
+            form.insertAdjacentHTML('beforeend', '<div class="form-parts"><button name="extract-btn" class="normal-btn ok w100" type="button" onclick="execExtract()"><span>抽出</span></button></div>');
+            form.insertAdjacentHTML('beforeend', '<div class="form-parts"><button name="reset-btn" class="normal-btn w100" type="button" onclick="resetExtractBox()"><span>リセット</span></button></div>');
+
+            area.insertAdjacentElement('beforeend', form);
+        }
+        // 指定した日付のリサイクルリストを取得する
+        function execSearch() {
+            const number = document.querySelector('#sidebar-area input[name="recycle-number"]');
+            if (number == null) return;
+            number.value = "";
+            updateRecycleList();
+        }
+        // 抽出条件に基づいてリストを作成する
+        function execExtract() {
+            changeRecyleList();
+        }
+        async function updateRecycleList() {
+            const date = document.querySelector("[name='date']");
+            if (date == null) return;
+            const state = document.querySelector("[name='date-class']");
+            if (state == null) return;
+
+            const stateStr = state.value == 1 ? "r.regist_date": "r.use_date";
+            const sql = {"sqlString":sqldata.sqlString + " AND CONVERT(DATE, " + stateStr + ") = '" + date.value + "' ORDER BY r.recycle_number", "classPath":sqldata.classPath}
+            const data = JSON.stringify(sql);
+            const result = await postFetch('/sql/get/list', data, token, 'application/json');
+            origin = await result.json();
+            changeRecyleList();
+        }
+        // 画面更新時に抽出条件によってフィルターをかける
+        function changeRecyleList() {
+            const area = document.getElementById('sidebar-form');
+            if (area == null) return;
+            const company = area.querySelector('[name="company"]');
+            if (company == null) return;
+            const office = area.querySelector('[name="office"]');
+            if (office == null) return;
+            const classCode = area.querySelector('[name="class-code"]');
+            if (classCode == null) return;
+            const makerCode = area.querySelector('[name="maker-code"]');
+            if (makerCode == null) return;
+
+            let list = structuredClone(origin);
+            if (company.value > 0) {
+                list = list?.filter(value => { return value.use_company_id == company.value });
+                if (office.value > 0) {
+                    list = list?.filter(value => { return value.use_office_id == office.value });
+                }
+            }
+            if (classCode.value != "") {
+                list = list?.filter(value => { return value.class_code == classCode.value });
+            }
+            if (makerCode.value != "") {
+                list = list?.filter(value => { return value.maker_code == makerCode.value });
+            }
+            updateListDisplay("tablelist", headerNames, list, "footer-text", true);
+        }
+        // 抽出条件入力ボックスを初期化する
+        function resetExtractBox() {
+            const area = document.getElementById('sidebar-form');
+            if (area == null) return;
+            const company = area.querySelector('select[name="company"]');
+            if (company == null) return;
+            company.value = 0;
+            const office = area.querySelector('select[name="office"]');
+            if (office == null) return;
+            deleteElements('edit-office-combo');
+            const classCode = area.querySelector('input[name="class-code"]');
+            if (classCode == null) return;
+            classCode.value = "";
+            const className = area.querySelector('input[name="class-name"]');
+            if (className == null) return;
+            className.value = "";
+            const makerCode = area.querySelector('input[name="maker-code"]');
+            if (makerCode == null) return;
+            makerCode.value = "";
+            const makerName = area.querySelector('input[name="maker-name"]');
+            if (makerName == null) return;
+            makerName.value = "";
+
+            updateListDisplay("tablelist", headerNames, origin, "footer-text", true);
+        }
+
+// --------------------------------------------------------------------------------------------------------------------------------------　編集フォーム画面
+        // 編集処理
+        function execEditForm(ids) {
+            if (ids == null) return;
+            const items = [];
+            for (let i = 0; i < ids.length; i++) {
+                let recycle = origin.find(value => { return value.recycle_id == ids[i].id});
+                items.push(recycle);
+            }
+            if (items.length == 0) return;
+            
+            const item = {};
+            // 使用日が複数あれば空白に設定する
+            const usedates = items.map(value => ({data:value.use_date}));
+            const usedatelist = Array.from(new Map(usedates.map((value) => [value.data, value])).values());
+            item.use_date = usedatelist.length == 1 ? usedatelist[0].data : "";
+            // 引渡日が複数あれば空白に設定する
+            const deliverydates = items.map(value => ({data:value.delivery_date}));
+            const deliverydatelist = Array.from(new Map(deliverydates.map((value) => [value.data, value])).values());
+            item.delivery_date = deliverydatelist.length == 1 ? deliverydatelist[0].data : "";
+            // 品目コードが複数あれば空白に設定する
+            const classcodes = items.map(value => ({data:value.class_code}));
+            const classcodelist = Array.from(new Map(classcodes.map((value) => [value.data, value])).values());
+            item.class_code = classcodelist.length == 1 ? classcodelist[0].data : "";
+            // 品目が複数あれば空白に設定する
+            const classnames = items.map(value => ({data:value.class_name}));
+            const classnamelist = Array.from(new Map(classnames.map((value) => [value.data, value])).values());
+            item.class_name = classnamelist.length == 1 ? classnamelist[0].data : "";
+            // 製造業者等名コードが複数あれば空白に設定する
+            const makercodes = items.map(value => ({data:value.maker_code}));
+            const makercodelist = Array.from(new Map(makercodes.map((value) => [value.data, value])).values());
+            item.maker_code = makercodelist.length == 1 ? makercodelist[0].data : "";
+            // 製造業者等名が複数あれば空白に設定する
+            const makernames = items.map(value => ({data:value.maker_name}));
+            const makernamelist = Array.from(new Map(makernames.map((value) => [value.data, value])).values());
+            item.maker_name = makernamelist.length == 1 ? makernamelist[0].data : "";
+            // 金額(税込)が複数あれば空白に設定する
+            const prices = items.map(value => ({data:value.price}));
+            const pricelist = Array.from(new Map(prices.map((value) => [value.data, value])).values());
+            item.price = pricelist.length == 1 ? pricelist[0].data : "";
+            // 金額(税抜)が複数あれば空白に設定する
+            const extaxs = items.map(value => ({data:value.ex_tax}));
+            const extaxlist = Array.from(new Map(extaxs.map((value) => [value.data, value])).values());
+            item.ex_tax = extaxlist.length == 1 ? extaxlist[0].data : "";
+            // 小売業者が複数あれば空白に設定する
+            const companies = items.map(value => ({data:value.use_company_id}));
+            const companylist = Array.from(new Map(companies.map((value) => [value.data, value])).values());
+            item.use_company_id = companylist.length == 1 ? companylist[0].data : 0;
+            // 小売業者支店が複数あれば空白に設定する
+            const offices = items.map(value => ({data:value.use_office_id}));
+            const officelist = Array.from(new Map(offices.map((value) => [value.data, value])).values());
+            item.use_office_id = officelist.length == 1 ? officelist[0].data : 0;
+            item.ids = getSearchStringWithSelectedId(ids);
+
+            createFormDialog(item);
+        }
+        // 勤怠データ編集フォーム画面作成
+        function createFormDialog(item) {
+            if (item == null) return;
+            // ヘッダー
+            const elmHeader = getFormHeader("リサイクルデータ修正");
+            // コンテント
+            const elmContent = getFormContent(item);
+            // フッター
+            const elmFooter = getFormFooter("修正")
+            // ダイアログ作成
+            const elmForm = document.createElement('div');
+            elmForm.classList.add('form-dialog');
+            elmForm.insertAdjacentElement('beforeend', elmHeader);
+            elmForm.insertAdjacentElement('beforeend', elmContent);
+            elmForm.insertAdjacentElement('beforeend', elmFooter);
+            const parent = document.getElementById('form-dialog-area');
+            const elm = document.createElement('div');
+            elm.classList.add('dialog');
+            parent.insertAdjacentElement('beforeend', elm);
+            parent.insertAdjacentElement('beforeend', elmForm);
+        }
+        // フォーム画面のコンテント部分作成
+        function getFormContent(item) {
+            const elmContent = document.createElement('form');
+            elmContent.classList.add('dialog-content', 'recycle');
+            elmContent.setAttribute('id', 'recycle-form');
+            // 使用日・引渡日
+            elmContent.insertAdjacentHTML('beforeend', '<div class="input-area"><div class="form-parts"><label>使用日</label><input name="use-date" class="normal-input date-area" type="date" value="' + item.use_date + '" onfocus="this.select();"></div>' +
+                                          '<div class="form-parts"><label>引渡日</label><input name="delivery-date" class="normal-input date-area" type="date" value="' + item.delivery_date + '" onfocus="this.select();"></div></div>');
+            // 小売業者名
+            elmContent.insertAdjacentHTML('beforeend', '<div class="form-parts w100"><label>小売業者名</label><div class="input-area"><select name="company" class="normal-select"></select>' +
+                                          '<select id="edit-office-combo" name="office" class="normal-select"></select></div></div>');
+            const companyArea = elmContent.querySelector('select[name="company"]');
+            createComboBoxWithTop(companyArea, companycombolist);
+            companyArea.onchange = function() { createEditOfficeCombo(this) };
+            setComboboxSelected(companyArea, item.use_company_id);
+            if (item.use_company_id > 0) {
+                const officeArea = elmContent.querySelector('select[name="office"]');
+                const combolist = officecombolist.filter(value => { return value.company_id == item.use_company_id }).map(item => ({number:item.office_id, text:item.office_name}));
+                createComboBoxWithTop(officeArea, combolist);
+                setComboboxSelected(officeArea, item.use_office_id);
+            }
+            // 品目
+            elmContent.insertAdjacentHTML('beforeend', '<div class="form-parts"><label>品目</label><div class="input-area">' +
+                                          '<div class="form-parts w30"><input name="class-code" class="normal-input" type="text" inputmode="numeric" pattern="\d*" maxlength="2" value="' + item.class_code + '" onfocus="this.select();"></div>' +
+                                          '<input name="class-name" class="normal-input" type="text" value="' + item.class_name + '" disabled></div></div>');
+            // 品目コード入力ボックスでエンターキーが押された時の処理を登録
+            elmContent.querySelector('input[name="class-code"]').addEventListener('keydown', function (e) { execClassCodeChanged(e, "recycle-form", 'input[name="maker-code"]'); });
+            // 品目コード入力ボックスのフォーカスが外れた時の処理を登録
+            elmContent.querySelector('input[name="class-code"]').addEventListener('blur', function (e) { execClassCodeBlur(e, "recycle-form", 'input[name="maker-code"]'); });
+            // 略称
+            elmContent.insertAdjacentHTML('beforeend', '<div class="form-parts"><label>製造業者等名</label><div class="input-area">' +
+                                          '<div class="form-parts w30"><input name="maker-code" class="normal-input" type="text" inputmode="numeric" pattern="\d*" maxlength="3" value="' + item.maker_code + '" onfocus="this.select();"></div>' +
+                                          '<input name="maker-name" class="normal-input" type="text" value="' + item.maker_name + '" disabled></div></div>');
+            // メーカーコード入力ボックスでエンターキーが押された時の処理を登録
+            elmContent.querySelector('input[name="maker-code"]').addEventListener('keydown', function (e) { execMakerCodeChanged(e, "recycle-form", 'input[name="price"]'); });
+            // メーカーコード入力ボックスのフォーカスが外れた時の処理を登録
+            elmContent.querySelector('input[name="maker-code"]').addEventListener('blur', function (e) { execMakerCodeBlur(e, "recycle-form", 'input[name="price"]'); });
+
+            // 金額
+            elmContent.insertAdjacentHTML('beforeend', '<div class="input-area"><div class="form-parts w40"><label>税込金額</label>' +
+                                          '<input name="price" class="normal-input text-right" type="text" inputmode="numeric" pattern="\d*" value="' + item.price + '" onfocus="this.select();"></div>' +
+                                          '<div class="form-parts w40"><label>税抜金額</label>' +
+                                          '<input name="ex-tax" class="normal-input text-right" type="text" inputmode="numeric" pattern="\d*" value="' + item.ex_tax + '" onfocus="this.select();"></div></div>');
+            // DB登録用隠しアイテム
+            elmContent.insertAdjacentHTML('beforeend', '<input name="origin-use-date" type="hidden" value="' + item.use_date + '">');
+            elmContent.insertAdjacentHTML('beforeend', '<input name="origin-delivery-date" type="hidden" value="' + item.delivery_date + '">');
+            elmContent.insertAdjacentHTML('beforeend', '<input name="origin-use-company-id" type="hidden" value="' + item.use_company_id + '">');
+            elmContent.insertAdjacentHTML('beforeend', '<input name="origin-use-office-id" type="hidden" value="' + item.use_office_id + '">');
+            elmContent.insertAdjacentHTML('beforeend', '<input name="origin-class-code" type="hidden" value="' + item.class_code + '">');
+            elmContent.insertAdjacentHTML('beforeend', '<input name="origin-maker-code" type="hidden" value="' + item.maker_code + '">');
+            elmContent.insertAdjacentHTML('beforeend', '<input name="origin-price" type="hidden" value="' + item.price + '">');
+            elmContent.insertAdjacentHTML('beforeend', '<input name="origin-ex-tax" type="hidden" value="' + item.ex_tax + '">');
+            elmContent.insertAdjacentHTML('beforeend', '<input name="ids" type="hidden" value="' + item.ids + '">');
+
+            return elmContent;
+        }
+        // フォーム画面のフッター部分作成
+        function getFormFooter(btnText) {
+            const elmFooter = document.createElement('div');
+            elmFooter.classList.add('dialog-footer');
+            elmFooter.insertAdjacentHTML('beforeend', '<button class="normal-btn frameless" type="button" onclick="closeDialog(\'form-dialog-area\', event)"><span>キャンセル</span></button>');
+            elmFooter.insertAdjacentHTML('beforeend', '<button class="normal-btn ok" type="button" onclick="execUpdateFormData()"><span>' + btnText + '</span></button>');
+            return elmFooter;
+        }
+        // 選択した会社の支店をコンボボックスに登録する(修正フォーム)
+        function createEditOfficeCombo(self) {
+            const selectId = self.value;
+            const combolist = officecombolist.filter(value => { return value.company_id == selectId }).map(item => ({number:item.office_id, text:item.office_name}));
+            const area = self.closest('#recycle-form');
+            const officeArea = area?.querySelector('select[name="office"]');
+            deleteElements('edit-office-combo');
+            createComboBoxWithTop(officeArea, combolist);
+        }
+        // 修正する
+        async function execUpdateFormData() {
+            // if (execFormDataCheck() == false) {
+            //     return;
+            // } else {
+                const form = document.getElementById('recycle-form');
+                const formData = new FormData(form);
+                const formdata = {};
+
+                const originUseDate = formData.get('origin-use-date');
+                const useDate = formData.get('use-date');
+                formdata.use_date = originUseDate == useDate ? "9999-12-31": useDate;
+
+                const originDeliveryDate = formData.get('origin-delivery-date');
+                const deliveryDate = formData.get('delivery-date');
+                formdata.delivery_date = originDeliveryDate == deliveryDate ? "9999-12-31": deliveryDate;
+
+                const originCompanyId = formData.get('origin-use-company-id');
+                const companyId = formData.get('company');
+                formdata.use_company_id = originCompanyId == companyId ? -1: companyId;
+
+                const originOfficeId = formData.get('origin-use-office-id');
+                const officeId = formData.get('office');
+                formdata.use_office_id = originOfficeId == officeId ? -1: officeId;
+
+                const originClassCode = formData.get('origin-class-code');
+                const classCode = formData.get('class-code');
+                formdata.class_code = originClassCode == classCode ? -1: classCode;
+
+                const originMakerCode = formData.get('origin-maker-code');
+                const makerCode = formData.get('maker-code');
+                formdata.maker_code = originMakerCode == makerCode ? -1: makerCode;
+
+                const originPrice = formData.get('origin-price');
+                const price = formData.get('price');
+                formdata.price = originPrice == price ? -1: price;
+
+                const originExTax = formData.get('origin-ex-tax');
+                const exTax = formData.get('ex-tax');
+                formdata.ex_tax = originExTax == exTax ? -1: exTax;
+
+                formdata.ids = formData.get('ids');
+                formdata.user_name = username;
+
+                closeDialog('form-dialog-area')
+                // 保存処理
+                const data = JSON.stringify(formdata);
+                const resultResponse = await postFetch('/update/recycle', data, token, 'application/json');
+                const result = await resultResponse.json();
+                if (result == 0) {
+                    // 失敗のダイアログを表示する
+                    messageDialog("修正できませんでした", 'エラー', 'red');
+                    return;
+                } else if (result == -1) {
+                    updateRecycleList();
+                    return;
+                } else {
+                    // 成功のダイアログを表示する
+                    messageDialog("修正しました", '成功', 'blue');
+                    updateRecycleList();
+                    return;
+                }
+            // }
+        }
+
+// 初期化時の処理 ------------------------------------------------------------------------------------------------------------------------------------
+        // 読み込み時の処理
+        window.addEventListener("load", async () => {
+            // サイドバー作成
+            createInputSidebar();
+            const side = document.getElementById('sidebar-area');
+
+            // 品目コード入力ボックスでエンターキーが押された時の処理を登録
+            side.querySelector('input[name="class-code"]').addEventListener('keydown', function (e) { execClassCodeChanged(e, "sidebar-area", 'input[name="maker-code"]'); });
+            // 品目コード入力ボックスのフォーカスが外れた時の処理を登録
+            side.querySelector('input[name="class-code"]').addEventListener('blur', function (e) { execClassCodeBlur(e, "sidebar-area", 'input[name="maker-code"]'); });
+
+            // メーカーコード入力ボックスでエンターキーが押された時の処理を登録
+            side.querySelector('input[name="maker-code"]').addEventListener('keydown', function (e) { execMakerCodeChanged(e, "sidebar-area", 'button[name="extract-btn"]'); });
+            // メーカーコード入力ボックスのフォーカスが外れた時の処理を登録
+            side.querySelector('input[name="maker-code"]').addEventListener('blur', function (e) { execMakerCodeBlur(e, "sidebar-area", 'button[name="extract-btn"]'); });
+
+            // 編集用リストを初期化用リストからコピー
+            const list = structuredClone(origin);
+            // 画面更新
+            updateListDisplay("tablelist", headerNames, list, "footer-text", true);
+
+            const date = document.querySelector('input[name="date"]');
+            // sv-SEロケールはYYYY-MM-DD形式の日付文字列を戻す
+            date.value = new Date().toLocaleDateString('sv-SE');
+            date.addEventListener('change', function (e) { checkDateChanged(e); });
+
+            const dateArea = document.querySelector('select[name="date-class"]');
+            createComboBox(dateArea, [{"number":1, "text":"入力日"}, {"number":2, "text":"使用日"}]);
+
+            // リサイクル券番号入力ボックスでエンターキーが押された時の処理を登録
+            document.querySelector('input[name="recycle-number"]').addEventListener('keydown', function (e) { execRecycleNumberChanged(e); });
+            // リサイクル券番号入力ボックスのフォーカスが外れた時の処理を登録
+            document.querySelector('input[name="recycle-number"]').addEventListener('blur', function (e) { execRecycleNumberBlur(e); });
+
+            // 処理が終了したらスピナーを消去する
+            processingEnd();
+        });
+    </script>
+</body>
+
+</html>

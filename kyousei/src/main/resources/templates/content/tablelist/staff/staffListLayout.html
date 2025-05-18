@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,viewport-fit=cover">
+
+<head>
+    <meta charset="UTF-8">
+    <link th:href="@{/css/tablelist.css}" rel="stylesheet" type="text/css">
+
+    <style type="text/css">
+        .tablelist-staff .tablelist-container {
+            max-width: 55rem;
+        }
+
+        .tablelist-staff tr {
+            grid-template-columns: 3rem 5rem minmax(10rem, 1fr) minmax(10rem, 12rem) minmax(10rem, 20rem);
+        }
+
+        .tablelist-staff footer {
+            padding: 2rem;
+            justify-self: end;
+        }
+
+        .dialog-content.stafflist {
+            width: 40rem;
+        }
+
+        @media screen and (max-width:560px) {
+            .dialog-content.stafflist {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div th:replace="~{fragment/main::main-fragment}"></div>
+
+    <script th:src="@{/js/default.js}"></script>
+    <script th:src="@{/js/dialog.js}"></script>
+    <script th:src="@{/js/time.js}"></script>
+    <script th:src="@{/js/list.js}"></script>
+    <script th:src="@{/js/form.js}"></script>
+    <script th:src="@{/js/sidebar.js}"></script>
+    <script th:src="@{/js/check.js}"></script>
+    <script th:src="@{/js/tablelist.js}"></script>
+    <script th:src="@{/js/getinfo.js}"></script>
+    <script th:src="@{/js/combo.js}"></script>
+    <script type="text/JavaScript" th:inline="JavaScript">
+        const token = /*[[${_csrf.token}]]*/; // POST送信用トークン
+        const sqllistdata = /*[[${sqllistdata}]]*/; // リスト用SqlData
+        const sqlformdata = /*[[${sqlformdata}]]*/; // フォーム用SqlData
+        const categorylist = /*[[${categorylist}]]*/; // カテゴリーリスト
+        const subcategorylist = /*[[${subcategorylist}]]*/; // サブカテゴリーリスト
+        const tablelistName = 'tablelist'; // テーブルリストのID名
+        const tablelistHeaderNames = ['コード', '氏名', '携帯番号', '会社名']; // テーブルリストのヘッダーリスト
+        const tablelistSearchString = ' AND st.staff_id'; // SQLのWHERE句用文字列
+
+        let tablelist = /*[[${tablelist}]]*/; // 初期リスト記憶用
+        let list = []; // 検索結果表示用
+        let acquisitionDateTime; // 時刻表示用
+        let sidebarSelectId = 0; // サイドバー選択アイテム記憶用
+        let officelist = []; // 支店リストコンボボックス用
+
+// -------------------------------------------------------------------------------------------------------------------------------------- 画面作成
+        // フォーム画面作成
+        function getFormContent(item) {
+            const elmContent = document.createElement('form');
+            elmContent.classList.add('dialog-content', 'stafflist');
+            elmContent.setAttribute('id', 'staff-form');
+            // DB登録用隠しアイテム
+            elmContent.insertAdjacentHTML('beforeend', '<input name="staff_id" type="hidden" value="' + item.staff_id + '">');
+            elmContent.insertAdjacentHTML('beforeend', '<input name="category_id" type="hidden" value="' + item.category_id + '">');
+            elmContent.insertAdjacentHTML('beforeend', '<input name="code" type="hidden" value="' + item.code + '">');
+            elmContent.insertAdjacentHTML('beforeend', '<input name="person_id" type="hidden" value="' + item.person_id + '">');
+            elmContent.insertAdjacentHTML('beforeend', '<input name="version" type="hidden" value="' + item.version + '">');
+
+            // 会社セレクトボックス
+            if (item.company_id == 0) {
+                const selectCompanyItem = document.querySelector('#sidebar-area li.selected > input');
+                item.company_id = selectCompanyItem.value;
+            }
+            const selectCompany = createComboBox(sidebarlist, 'company', item.company_id, setOfficeList);
+            const selectCompanyContent = getComboBox('会社', selectCompany);
+            selectCompanyContent.classList.add('cp6');
+            elmContent.insertAdjacentElement('beforeend', selectCompanyContent);
+            // 支店セレクトボックス
+            officelist = subcategorylist.filter(val => { return val.subnumber == item.company_id });
+            const selectOffice = createComboBox(officelist, 'office', item.office_id, null);
+            const selectOfficeContent = getComboBox('支店', selectOffice);
+            selectOfficeContent.classList.add('ct7', 'cp6');
+            elmContent.insertAdjacentElement('beforeend', selectOfficeContent);
+            // 氏名入力ボックス
+            const nameContent = getSeparateNameInputBoxWithKana(item);
+            nameContent.classList.add('cp12');
+            elmContent.insertAdjacentElement('beforeend', nameContent);
+            // 電話番号入力ボックス
+            const phoneContent = getPhoneNumberInputBox(item);
+            phoneContent.classList.add('cp4');
+            elmContent.insertAdjacentElement('beforeend', phoneContent);
+            // メールアドレス入力ボックス
+            const mailContent = getMailAddressInputBox(item);
+            mailContent.classList.add('ct5', 'cp8');
+            elmContent.insertAdjacentElement('beforeend', mailContent);
+            return elmContent;
+        }
+
+        function setOfficeList() {
+            createComboBoxItems('staff-form', 'office', 'company');
+        }
+
+// -------------------------------------------------------------------------------------------------------------------------------------- 更新時の処理
+        // 入力チェック
+        function execFormDataCheck() {0
+            const name = document.querySelector('[name="last_name"]');
+            if (name != null && name.value == "") {
+                const msg = '姓が入力されていません';
+                const title = 'エラー';
+                const headerColor = 'red';
+                createMessageDialog(msg, title, headerColor);
+                return false;
+            }
+            return true;
+        }
+
+        // 作成・更新処理
+        async function execUpdateFormData() {
+            if (execFormDataCheck() == false) {
+                return;
+            } else {
+                const form = document.getElementById('staff-form');
+                const formData = new FormData(form);
+                const formdata = {};
+                formdata.staff_id = formData.get('staff_id');
+                formdata.category_id = formData.get('category_id');
+                formdata.code = formData.get('code');
+                formdata.person_id = formData.get('person_id');
+                formdata.company_id = formData.get('company');
+                formdata.office_id = formData.get('office');
+                formdata.last_name = formData.get('last_name');
+                formdata.first_name = formData.get('first_name');
+                formdata.last_name_kana = formData.get('last_name_kana');
+                formdata.first_name_kana = formData.get('first_name_kana');
+                formdata.phone_number = formData.get('phone_number');
+                formdata.email = formData.get('email');
+                formdata.version = formData.get('version');
+                // 保存処理
+                const id = formdata.staff_id;
+                const selectId = formdata.company_id;
+                const obj = document.getElementById('sidebar-item' + formdata.company_id);
+                await saveFormData('/sales/staff/save', formdata, id, selectId, tablelistName, obj);
+            }
+        }
+
+// -------------------------------------------------------------------------------------------------------------------------------------- 初期化時の処理
+        window.addEventListener("load", () => {
+            // 検索ボックスでエンターキーが押された時の処理を登録
+            document.getElementById('search-box').addEventListener('search', function(e) {
+                //　✖️が押された時の処理
+                if ( this.value.length === 0 ) {
+                    extractListFromSelectionCriteria();
+                    updateDisplay();
+                } else {
+                    createTablelistFromSearchCriteria(this.value);
+                }                
+            }, false);
+            // 初期リストを編集用リストにコピー
+            list = tablelist;
+            // フッター表示用の取得時刻を設定
+            acquisitionDateTime = getNow();
+            // ヘッダー作成
+            createHeader();
+            // 会社リストの先頭に全て表示を追加する            
+            sidebarlist = addAllSelectionsToTopOfList(categorylist);
+            // サイドバー作成
+            const area = document.getElementById("sidebar-area");
+            createSidebarList(sidebarlist, area, "営業担当一覧", "updateWhenSelected", tablelistName);
+            // 画面更新
+            updateDisplay();
+        });
+    </script>
+</body>
+
+</html>
